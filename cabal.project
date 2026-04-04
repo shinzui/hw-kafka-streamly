@@ -1,0 +1,23 @@
+packages:
+  hw-kafka-streamly
+  hw-kafka-streamly-jitsurei
+
+optional-packages:
+  /Users/shinzui/Keikaku/hub/haskell/streamly-project/streamly/core/streamly-core.cabal
+  /Users/shinzui/Keikaku/hub/haskell/streamly-project/streamly/streamly.cabal
+
+with-compiler: ghc-9.12.2
+
+test-show-details: direct
+
+allow-newer:
+  -- GHC 9.12 ships with updated boot libraries
+  *:time
+  , *:containers
+  , *:template-haskell
+  , *:text
+  , *:bytestring
+  , *:base
+  , *:ghc-prim
+  , *:deepseq
+  , *:filepath

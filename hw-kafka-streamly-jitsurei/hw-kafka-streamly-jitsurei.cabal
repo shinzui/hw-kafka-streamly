@@ -1,0 +1,136 @@
+cabal-version: 3.4
+name:          hw-kafka-streamly-jitsurei
+version:       0.1.0.0
+synopsis:      Cookbook examples for hw-kafka-streamly
+license:       MIT
+license-file:  LICENSE
+author:        Nadeem Bitar
+maintainer:    Nadeem Bitar
+category:      Kafka
+build-type:    Simple
+
+common warnings
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wmissing-export-lists -Wpartial-fields
+    -Wmissing-deriving-strategies
+
+common defaults
+  import:             warnings
+  default-language:   GHC2024
+  default-extensions:
+    DuplicateRecordFields
+    ImportQualifiedPost
+    OverloadedLabels
+    OverloadedRecordDot
+    OverloadedStrings
+
+library
+  import:          defaults
+  hs-source-dirs:  src
+  exposed-modules: HwKafkaStreamly.Jitsurei.Config
+  build-depends:
+    , base             >=4.21 && <5
+    , hw-kafka-client
+
+executable hw-kafka-streamly-jitsurei
+  import:         defaults
+  main-is:        Main.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , hw-kafka-streamly-jitsurei
+
+executable streamly-producer
+  import:         defaults
+  main-is:        StreamlyProducer.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable streamly-consumer
+  import:         defaults
+  main-is:        StreamlyConsumer.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable error-handling
+  import:         defaults
+  main-is:        ErrorHandling.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable transform-pipeline
+  import:         defaults
+  main-is:        TransformPipeline.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable batch-sink
+  import:         defaults
+  main-is:        BatchSink.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable consume-produce
+  import:         defaults
+  main-is:        ConsumeProduce.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly-core
+
+executable concurrent-consume
+  import:         defaults
+  main-is:        ConcurrentConsume.hs
+  hs-source-dirs: app
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+    , base                        >=4.21 && <5
+    , bytestring
+    , hw-kafka-client
+    , hw-kafka-streamly
+    , hw-kafka-streamly-jitsurei
+    , streamly
+    , streamly-core

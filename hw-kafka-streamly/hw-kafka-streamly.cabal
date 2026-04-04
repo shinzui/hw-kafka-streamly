@@ -1,0 +1,49 @@
+cabal-version: 3.4
+name:          hw-kafka-streamly
+version:       0.1.0.0
+synopsis:      Streamly bindings for hw-kafka-client
+description:
+  Streamly streaming integration for hw-kafka-client, a Haskell
+  binding to Apache Kafka via librdkafka. Provides composable stream
+  sources for consuming and fold-based sinks for producing, with safe
+  resource management.
+
+license:       MIT
+license-file:  LICENSE
+author:        Nadeem Bitar
+maintainer:    Nadeem Bitar
+category:      Kafka
+build-type:    Simple
+
+common warnings
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wmissing-export-lists -Wpartial-fields
+    -Wmissing-deriving-strategies
+
+library
+  import:             warnings
+  exposed-modules:
+    Kafka.Streamly.Combinators
+    Kafka.Streamly.Sink
+    Kafka.Streamly.Source
+
+  build-depends:
+    , base             >=4.21 && <5
+    , bifunctors       >=5.6  && <6
+    , bytestring       >=0.11 && <0.13
+    , exceptions       >=0.10 && <1
+    , hw-kafka-client  >=5.3  && <6
+    , streamly-core    >=0.4  && <0.5
+
+  hs-source-dirs:     src
+  default-language:   GHC2024
+  default-extensions:
+    DataKinds
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    NoFieldSelectors
+    OverloadedRecordDot
+    OverloadedStrings

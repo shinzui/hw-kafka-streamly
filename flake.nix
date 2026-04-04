@@ -16,14 +16,14 @@
         formatter = treefmtEval.config.build.wrapper;
 
         # Feature flags
-        withProcessCompose = false;
+        withProcessCompose = true;
         withPostgresql = false;
       in
       {
         formatter = formatter;
 
         packages = {
-          default = haskellPackages.hw-kafka-streamly;
+          default = haskellPackages.hw-kafka-streamly-jitsurei;
         };
 
         checks = {
@@ -39,6 +39,7 @@
 
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = [
+            pkgs.rdkafka
             pkgs.zlib
             pkgs.just
             pkgs.cabal-install
