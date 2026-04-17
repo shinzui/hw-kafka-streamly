@@ -38,7 +38,7 @@ The final item left unchecked in the original design plan at `docs/plans/1-strea
 - [x] Save transcripts to docs/validation/0.1.0.0-jitsurei.md (2026-04-17)
 - [x] Mark the Redpanda validation item complete in docs/plans/1-streamly-bindings-for-hw-kafka-client.md (2026-04-17)
 - [x] Stop Redpanda: rpk container purge (process-compose socket was gone; used rpk directly) (2026-04-17)
-- [ ] Commit with ExecPlan + MasterPlan + Intention trailers
+- [x] Commit with ExecPlan + MasterPlan + Intention trailers (2026-04-17, f8984ec)
 
 
 ## Surprises & Discoveries
