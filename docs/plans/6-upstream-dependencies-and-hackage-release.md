@@ -30,9 +30,10 @@ The novice reader reaching this plan has: a polished library, a README, a CHANGE
 - [x] Produce Haddock: cabal haddock hw-kafka-streamly --haddock-for-hackage (2026-04-17; 100% coverage, dist-newstyle/hw-kafka-streamly-0.1.0.0-docs.tar.gz)
 - [x] Inspect the sdist tarball contents (README.md, CHANGELOG.md, cabal file, sources) (2026-04-17; README+CHANGELOG+LICENSE+3 src modules+test tree present, jitsurei/docs/flake/Justfile absent)
 - [x] Smoke-test the sdist: extract it, cd in, cabal build with a separate cabal store (2026-04-17; built cleanly from Hackage with a throwaway cabal.project in /tmp/hw-kafka-streamly-sdist-test/hw-kafka-streamly-0.1.0.0 and `--store-dir=/tmp/cabal-store-sdist-test`)
-- [ ] Upload candidate to Hackage: cabal upload --publish=false
-- [ ] Verify the candidate page renders correctly on hackage.haskell.org
-- [ ] Tag git: git tag -a v0.1.0.0 -m "Release 0.1.0.0" && git push origin v0.1.0.0
+- [x] Upload candidate to Hackage: cabal upload --publish=false (2026-04-17; sdist + docs uploaded to https://hackage.haskell.org/package/hw-kafka-streamly-0.1.0.0/candidate)
+- [ ] Verify the candidate page renders correctly on hackage.haskell.org (awaiting user eyeball check)
+- [ ] Promote candidate to full release: cabal upload --publish (awaiting user go-ahead after candidate review)
+- [ ] Tag git: git tag -a v0.1.0.0 -m "Release 0.1.0.0" && git push origin v0.1.0.0 (awaiting user go-ahead post-publish)
 - [ ] Update CHANGELOG.md: replace "0.1.0.0 (unreleased)" with "0.1.0.0 (<release date>)"
 - [ ] Mark the MasterPlan complete and fill in Outcomes & Retrospective
 - [ ] Commit with ExecPlan + MasterPlan + Intention trailers
