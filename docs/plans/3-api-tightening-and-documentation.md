@@ -36,7 +36,7 @@ The plan delivers Haddock that renders correctly under `cabal haddock --haddock-
 - [x] Verify cabal build all succeeds with no warnings (2026-04-17 — also fixed pre-existing unused-import warning in jitsurei/BatchSink.hs)
 - [x] Verify cabal haddock hw-kafka-streamly succeeds (2026-04-17 — only pre-existing upstream warnings remain, see Surprises)
 - [x] Append a brief summary of user-visible changes to hw-kafka-streamly/CHANGELOG.md (2026-04-17)
-- [ ] Commit with ExecPlan + MasterPlan + Intention trailers
+- [x] Commit with ExecPlan + MasterPlan + Intention trailers (2026-04-17 — commit 65a408d)
 
 
 ## Surprises & Discoveries
