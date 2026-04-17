@@ -55,7 +55,7 @@ After this work is complete a Haskell developer can consume messages from Apache
   - [x] Implement `consume-produce` ETL example
   - [x] Implement `concurrent-consume` example using `parMapM`
   - [x] Verify all executables compile with zero warnings
-  - [ ] Validate examples against running Redpanda (manual test)
+  - [x] Validate examples against running Redpanda (manual test) (2026-04-17, see docs/validation/0.1.0.0-jitsurei.md)
 
 
 ## Surprises & Discoveries

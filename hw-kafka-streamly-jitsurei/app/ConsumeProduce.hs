@@ -19,6 +19,7 @@ import Kafka.Consumer (
     topics,
  )
 import Kafka.Producer qualified as P
+import Kafka.Streamly.Combinators (throwLeft)
 import Kafka.Streamly.Sink (kafkaSink, withKafkaProducer)
 import Kafka.Streamly.Source (kafkaSource, skipNonFatal)
 import Streamly.Data.Stream qualified as Stream
@@ -71,8 +72,8 @@ main = do
                         putStrLn $ "  Processing: " <> showBS (crValue record)
                         pure (toOutputRecord record)
                     )
-                    $ Stream.mapMaybe (either (const Nothing) Just)
                     $ Stream.take 5
+                    $ throwLeft
                     $ skipNonFatal source
         Stream.fold (kafkaSink producer) pipeline
     case result of

@@ -58,6 +58,8 @@ main = do
     putStrLn "  (maxThreads=4, maxBuffer=8)"
     let source =
             kafkaSource consumerProps consumerSub defaultTimeout
+        -- Note: parMapM dispatches work across threads, so [start] and [done]
+        -- lines below will not appear in input order. This is expected.
         pipeline =
             StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage $
                 Stream.mapMaybe (either (const Nothing) Just) $
