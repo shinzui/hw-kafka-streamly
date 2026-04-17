@@ -15,13 +15,28 @@ Initial release.
   `kafkaSourceAutoClose`, `kafkaSourceNoClose`) for different resource-ownership
   models; error predicates (`isFatal`, `isPollTimeout`, `isPartitionEOF`);
   error filters (`skipNonFatal`, `skipNonFatalExcept`); and value-mapping
-  helpers built on `Bifunctor`/`Traversable`/`Bitraversable`
-  (`mapFirst`, `mapValue`, `bimapValue`, `sequenceValueFirst`, `sequenceValue`,
-  `bisequenceValue`, `traverseValueFirst`, `traverseValue`, `bitraverseValue`,
-  `traverseValueFirstM`, `traverseValueM`, `bitraverseValueM`).
+  helpers built on `Bifunctor` (`mapFirst`, `mapValue`, `bimapValue`).
 - `Kafka.Streamly.Sink` — two producer fold variants (`kafkaSink` for
   per-record sends, `kafkaBatchSink` for `[ProducerRecord]` batches) and a
   `withKafkaProducer` bracket helper that flushes and closes on exit.
 - `Kafka.Streamly.Combinators` — `batchByOrFlush` and `batchByOrFlushEither`
   for size-bounded batching with explicit flush, and `throwLeft` /
   `throwLeftSatisfy` for raising error values as exceptions.
+- Module-level Haddock with worked examples and `@since 0.1.0.0` tags on
+  every exported identifier.
+
+### Fixed
+
+- `withKafkaProducer` no longer flushes twice on teardown
+  (`Kafka.Producer.closeProducer` already flushes internally).
+
+### Changed
+
+- `batchByOrFlush` and `batchByOrFlushEither` now reject non-positive
+  `BatchSize` with an explicit error rather than silently emitting
+  singleton batches.
+- Value-mapping helpers pruned: the nine `sequenceValue*`, `traverseValue*`,
+  and `bitraverseValue*`/`bisequenceValue` variants have been removed.
+  Callers who relied on them can use `fmap`/`bimap`/`traverse`/`bitraverse`
+  inline. `mapFirst`, `mapValue`, and `bimapValue` remain, re-documented as
+  `Bifunctor`/`Functor` lifts.

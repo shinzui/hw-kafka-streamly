@@ -1,3 +1,14 @@
+{- |
+Module      : Kafka.Streamly.Combinators
+Description : Auxiliary combinators for Streamly–Kafka pipelines.
+
+Auxiliary combinators that bridge consumer streams and producer folds:
+size-bounded batching with an explicit flush token, and helpers for callers
+who prefer exceptions over the @Either KafkaError a@ values that
+'Kafka.Streamly.Source' yields.
+
+Re-exports t'Kafka.Types.BatchSize' from "Kafka.Types" for convenience.
+-}
 module Kafka.Streamly.Combinators (
     -- * Types
     BatchSize (..),
@@ -17,7 +28,11 @@ import Streamly.Data.Scanl qualified as Scanl
 import Streamly.Data.Stream (Stream)
 import Streamly.Data.Stream qualified as Stream
 
--- | Throws the left part of a value as an exception, passing right values through.
+{- | Throws the left part of a value as an exception, passing right values
+through.
+
+@since 0.1.0.0
+-}
 throwLeft ::
     (MonadThrow m, Exception e) =>
     Stream m (Either e a) ->
@@ -27,8 +42,11 @@ throwLeft = Stream.mapMaybeM $ \case
     Right a -> pure (Just a)
 {-# INLINE throwLeft #-}
 
-{- | Throws the left part of a value as an exception if it satisfies the predicate.
-Non-matching left values and all right values pass through unchanged.
+{- | Throws the left part of a value as an exception if it satisfies the
+predicate. Non-matching left values and all right values pass through
+unchanged.
+
+@since 0.1.0.0
 -}
 throwLeftSatisfy ::
     (MonadThrow m, Exception e) =>
@@ -41,24 +59,37 @@ throwLeftSatisfy p = Stream.mapMaybeM $ \case
 {-# INLINE throwLeftSatisfy #-}
 
 {- | Batch stream elements by size, flushing on 'Nothing'.
+
 Elements wrapped in 'Just' accumulate into a batch. When the batch reaches
 the specified size or a 'Nothing' is received, the current batch is emitted.
 Empty batches are not emitted. A final incomplete batch is emitted when the
 stream ends.
+
+Raises an 'error' if the t'BatchSize' is non-positive — @BatchSize 0@ would
+emit a singleton batch for every element, which is never what the caller
+wants.
+
+@since 0.1.0.0
 -}
 batchByOrFlush ::
     (Monad m) =>
     BatchSize ->
     Stream m (Maybe a) ->
     Stream m [a]
-batchByOrFlush n input = batchInternal n (Stream.append input (Stream.fromPure Nothing))
+batchByOrFlush n input =
+    batchInternal "batchByOrFlush" n (Stream.append input (Stream.fromPure Nothing))
 {-# INLINE batchByOrFlush #-}
 
 {- | Batch stream elements by size, flushing on 'Left'.
+
 'Right' values accumulate into a batch. When the batch reaches
 the specified size or a 'Left' is received, the current batch is emitted.
 Empty batches are not emitted. A final incomplete batch is emitted when the
 stream ends.
+
+Raises an 'error' if the t'BatchSize' is non-positive.
+
+@since 0.1.0.0
 -}
 batchByOrFlushEither ::
     (Monad m) =>
@@ -66,7 +97,7 @@ batchByOrFlushEither ::
     Stream m (Either e a) ->
     Stream m [a]
 batchByOrFlushEither n input =
-    batchInternal n $
+    batchInternal "batchByOrFlushEither" n $
         Stream.append (fmap eitherToMaybe input) (Stream.fromPure Nothing)
   where
     eitherToMaybe (Left _) = Nothing
@@ -76,13 +107,16 @@ batchByOrFlushEither n input =
 -- Internal batching implementation shared by both combinators.
 batchInternal ::
     (Monad m) =>
+    String ->
     BatchSize ->
     Stream m (Maybe a) ->
     Stream m [a]
-batchInternal (BatchSize n) =
-    Stream.catMaybes
-        . fmap extract
-        . Stream.scanl (Scanl.mkScanl step initial)
+batchInternal caller (BatchSize n)
+    | n <= 0 = error (caller <> ": BatchSize must be positive, got " <> show n)
+    | otherwise =
+        Stream.catMaybes
+            . fmap extract
+            . Stream.scanl (Scanl.mkScanl step initial)
   where
     initial :: (Int, [a], Maybe [a])
     initial = (0, [], Nothing)

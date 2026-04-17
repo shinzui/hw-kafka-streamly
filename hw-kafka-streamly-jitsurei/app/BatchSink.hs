@@ -13,7 +13,6 @@ import Kafka.Producer (
  )
 import Kafka.Streamly.Combinators (BatchSize (..), batchByOrFlush)
 import Kafka.Streamly.Sink (kafkaBatchSink, withKafkaProducer)
-import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 
 producerProps :: ProducerProperties
