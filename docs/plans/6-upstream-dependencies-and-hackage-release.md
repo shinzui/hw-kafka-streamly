@@ -31,12 +31,12 @@ The novice reader reaching this plan has: a polished library, a README, a CHANGE
 - [x] Inspect the sdist tarball contents (README.md, CHANGELOG.md, cabal file, sources) (2026-04-17; README+CHANGELOG+LICENSE+3 src modules+test tree present, jitsurei/docs/flake/Justfile absent)
 - [x] Smoke-test the sdist: extract it, cd in, cabal build with a separate cabal store (2026-04-17; built cleanly from Hackage with a throwaway cabal.project in /tmp/hw-kafka-streamly-sdist-test/hw-kafka-streamly-0.1.0.0 and `--store-dir=/tmp/cabal-store-sdist-test`)
 - [x] Upload candidate to Hackage: cabal upload --publish=false (2026-04-17; sdist + docs uploaded to https://hackage.haskell.org/package/hw-kafka-streamly-0.1.0.0/candidate)
-- [ ] Verify the candidate page renders correctly on hackage.haskell.org (awaiting user eyeball check)
-- [ ] Promote candidate to full release: cabal upload --publish (awaiting user go-ahead after candidate review)
-- [ ] Tag git: git tag -a v0.1.0.0 -m "Release 0.1.0.0" && git push origin v0.1.0.0 (awaiting user go-ahead post-publish)
-- [ ] Update CHANGELOG.md: replace "0.1.0.0 (unreleased)" with "0.1.0.0 (<release date>)"
-- [ ] Mark the MasterPlan complete and fill in Outcomes & Retrospective
-- [ ] Commit with ExecPlan + MasterPlan + Intention trailers
+- [x] Verify the candidate page renders correctly on hackage.haskell.org (2026-04-17; user confirmed "loooks good")
+- [x] Promote candidate to full release: cabal upload --publish (2026-04-17; https://hackage.haskell.org/package/hw-kafka-streamly-0.1.0.0 is live, sdist + docs published)
+- [x] Tag git: git tag -a v0.1.0.0 -m "Release 0.1.0.0" && git push origin v0.1.0.0 (2026-04-17; tag on origin)
+- [x] Update CHANGELOG.md: replace "0.1.0.0 (unreleased)" with "0.1.0.0 — 2026-04-17" (2026-04-17; commit 1de83e7)
+- [x] Mark the MasterPlan complete and fill in Outcomes & Retrospective (2026-04-17; EP-2/3/4/5/6 marked Complete in registry, Outcomes section written)
+- [x] Commit with ExecPlan + MasterPlan + Intention trailers (2026-04-17)
 
 
 ## Surprises & Discoveries
@@ -100,7 +100,62 @@ The novice reader reaching this plan has: a polished library, a README, a CHANGE
 
 ## Outcomes & Retrospective
 
-(To be filled during and after implementation.)
+`hw-kafka-streamly-0.1.0.0` is published on Hackage at
+<https://hackage.haskell.org/package/hw-kafka-streamly-0.1.0.0> with uploaded
+Haddock. The git repository carries an annotated tag `v0.1.0.0` on origin,
+and `hw-kafka-streamly/CHANGELOG.md` dates the release as 2026-04-17.
+
+### What was achieved
+
+- Resolved the upstream-dependency problem by widening
+  `streamly-core >= 0.4 && < 0.5` to `>= 0.3 && < 0.5` in both the library
+  and test-suite stanzas of `hw-kafka-streamly/hw-kafka-streamly.cabal`.
+  No source-code changes were required: every streamly API the library
+  touches is already exported by `streamly-core-0.3.0`.
+- Removed the `optional-packages:` block from `cabal.project` that pointed
+  at the local `streamly-project` checkout, so `cabal build all` and
+  `cabal sdist` resolve from Hackage alone. The file no longer contains any
+  reference to the filesystem override at all (the follow-up comment was
+  also stripped at the user's request, commit 9e6f3e0).
+- Produced `dist-newstyle/sdist/hw-kafka-streamly-0.1.0.0.tar.gz` and
+  verified its contents (README, CHANGELOG, LICENSE, 3 library modules,
+  test tree). No jitsurei / docs / nix / Justfile leakage.
+- Built Haddock with 100% coverage on the three public modules and uploaded
+  the resulting `-docs.tar.gz`.
+- Smoke-tested the sdist by extracting it to
+  `/tmp/hw-kafka-streamly-sdist-test/hw-kafka-streamly-0.1.0.0` with a
+  minimal bespoke `cabal.project` and building it against a fresh cabal
+  store at `/tmp/cabal-store-sdist-test`. All deps (including
+  `streamly-core-0.3.0` and `hw-kafka-client-5.3.0`) resolved from
+  Hackage and the library compiled cleanly.
+- Uploaded a candidate to
+  `https://hackage.haskell.org/package/hw-kafka-streamly-0.1.0.0/candidate`,
+  obtained user sign-off on the rendered page, and then promoted to a full
+  release with `cabal upload --publish` (both sdist and docs).
+- Tagged `v0.1.0.0` annotated and pushed to `origin`.
+- Updated CHANGELOG to `## 0.1.0.0 — 2026-04-17`.
+
+### What remains
+
+- Update the MasterPlan's Exec-Plan Registry to mark EP-6 Complete and its
+  Outcomes section to reflect 0.1.0.0 shipping.
+- Nothing blocks `cabal install hw-kafka-streamly` for an external user on
+  a machine that already has `librdkafka` available (required by
+  `hw-kafka-client`).
+
+### Lessons learned
+
+- Widening the streamly bound turned out to be trivial because every API
+  we touch has been stable between `streamly-core-0.3` and `0.4`. The
+  heavier "vendor" path was unnecessary. For future streamly version bumps
+  we can keep this looser bound until upstream actually breaks something.
+- The extracted sdist has no `cabal.project` of its own, so an isolated
+  smoke test needs a minimal bespoke one with the same `with-compiler` and
+  `allow-newer` stanza as the repo root. Recording the exact file contents
+  in the plan made the step reproducible.
+- Haddock's "`KafkaError` is ambiguous" and missing `Rep_BatchSize` link
+  warnings are cosmetic and don't block upload; they're worth tracking for
+  a future polish pass but were not gating for 0.1.0.0.
 
 
 ## Context and Orientation
