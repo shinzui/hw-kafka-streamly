@@ -57,3 +57,34 @@ library
     NoFieldSelectors
     OverloadedRecordDot
     OverloadedStrings
+
+test-suite hw-kafka-streamly-test
+  import:             warnings
+  type:               exitcode-stdio-1.0
+  main-is:            Main.hs
+  hs-source-dirs:     test
+  other-modules:
+    Kafka.Streamly.CombinatorsTest
+    Kafka.Streamly.SourceTest
+
+  build-depends:
+    , base               >=4.21 && <5
+    , exceptions         >=0.10 && <1
+    , hw-kafka-client    >=5.3  && <6
+    , hw-kafka-streamly
+    , streamly-core      >=0.4  && <0.5
+    , tasty              >=1.4  && <2
+    , tasty-hunit        >=0.10 && <0.11
+    , tasty-quickcheck   >=0.10 && <0.12
+
+  default-language:   GHC2024
+  default-extensions:
+    DataKinds
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    NoFieldSelectors
+    OverloadedRecordDot
+    OverloadedStrings
+
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N

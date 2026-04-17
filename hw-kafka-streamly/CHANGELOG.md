@@ -40,3 +40,12 @@ Initial release.
   Callers who relied on them can use `fmap`/`bimap`/`traverse`/`bitraverse`
   inline. `mapFirst`, `mapValue`, and `bimapValue` remain, re-documented as
   `Bifunctor`/`Functor` lifts.
+
+### Tests
+
+- Initial pure test suite covering error predicates (`isFatal`,
+  `isPollTimeout`, `isPartitionEOF`), error filters (`skipNonFatal`,
+  `skipNonFatalExcept`), batching combinators (`batchByOrFlush`,
+  `batchByOrFlushEither`), and exception combinators (`throwLeft`,
+  `throwLeftSatisfy`). Uses `tasty` + `tasty-hunit` + `tasty-quickcheck`.
+  Run with `cabal test`.
