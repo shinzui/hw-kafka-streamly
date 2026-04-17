@@ -1,7 +1,9 @@
 cabal-version: 3.4
 name:          hw-kafka-streamly-jitsurei
 version:       0.1.0.0
-synopsis:      Cookbook examples for hw-kafka-streamly
+synopsis:
+  Cookbook examples for hw-kafka-streamly (not intended for publication)
+
 license:       MIT
 license-file:  LICENSE
 author:        Nadeem Bitar
