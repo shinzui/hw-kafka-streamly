@@ -28,7 +28,7 @@ This is the first test suite in the project. It establishes the convention other
 - [x] Run cabal test hw-kafka-streamly and observe all tests pass — 58/58 green, ~0.00s (2026-04-17)
 - [x] Verify cabal check still passes (2026-04-17)
 - [x] Append a "Tests" bullet to CHANGELOG.md under 0.1.0.0 (2026-04-17)
-- [ ] Commit with ExecPlan + MasterPlan + Intention trailers
+- [x] Commit with ExecPlan + MasterPlan + Intention trailers — commit 7768957 (2026-04-17)
 
 
 ## Surprises & Discoveries
