@@ -3,6 +3,7 @@ module Main (main) where
 import Data.Bifunctor (bimap, first)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BS8
+import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName)
 import Kafka.Consumer (
@@ -65,29 +66,29 @@ main :: IO ()
 main = do
     -- Pattern 1: mapValue transforms the value field of ConsumerRecord
     putStrLn "=== Pattern 1: mapValue (uppercase record values) ==="
-    Stream.fold (Fold.drainMapM printEither) $
-        Stream.take 5 $
-            mapValue (fmap uppercaseBS) $
-                skipNonFatal $
-                    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & skipNonFatal
+        & mapValue (fmap uppercaseBS)
+        & Stream.take 5
+        & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 2: fmap with Bifunctor.first to transform record keys
     putStrLn ""
     putStrLn "=== Pattern 2: fmap with Bifunctor.first (prefix record keys) ==="
-    Stream.fold (Fold.drainMapM printEither) $
-        Stream.take 5 $
-            fmap (fmap (first prefixKey)) $
-                skipNonFatal $
-                    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & skipNonFatal
+        & fmap (fmap (first prefixKey))
+        & Stream.take 5
+        & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 3: fmap with bimap to transform both key and value
     putStrLn ""
     putStrLn "=== Pattern 3: fmap with bimap (prefix keys + uppercase values) ==="
-    Stream.fold (Fold.drainMapM printEither) $
-        Stream.take 5 $
-            fmap (fmap (bimap prefixKey uppercaseBS)) $
-                skipNonFatal $
-                    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & skipNonFatal
+        & fmap (fmap (bimap prefixKey uppercaseBS))
+        & Stream.take 5
+        & Stream.fold (Fold.drainMapM printEither)
 
     putStrLn ""
     putStrLn "Done."

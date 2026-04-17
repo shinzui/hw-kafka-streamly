@@ -2,6 +2,7 @@ module Main (main) where
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BS8
+import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName)
 import Kafka.Consumer (
@@ -54,7 +55,7 @@ printMessage (Right record) =
 main :: IO ()
 main = do
     putStrLn $ "Consuming up to 10 messages from " <> show defaultTopicName <> " via kafkaSource..."
-    Stream.fold (Fold.drainMapM printMessage) $
-        Stream.take 10 $
-            kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & Stream.take 10
+        & Stream.fold (Fold.drainMapM printMessage)
     putStrLn "Done."

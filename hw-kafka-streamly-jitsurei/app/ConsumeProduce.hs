@@ -2,6 +2,7 @@ module Main (main) where
 
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BS8
+import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName, outputTopicName)
 import Kafka.Consumer (
@@ -67,14 +68,14 @@ main = do
         let source =
                 kafkaSource consumerProps consumerSub defaultTimeout
             pipeline =
-                Stream.mapM
-                    ( \record -> do
-                        putStrLn $ "  Processing: " <> showBS (crValue record)
-                        pure (toOutputRecord record)
-                    )
-                    $ Stream.take 5
-                    $ throwLeft
-                    $ skipNonFatal source
+                skipNonFatal source
+                    & throwLeft
+                    & Stream.take 5
+                    & Stream.mapM
+                        ( \record -> do
+                            putStrLn $ "  Processing: " <> showBS (crValue record)
+                            pure (toOutputRecord record)
+                        )
         Stream.fold (kafkaSink producer) pipeline
     case result of
         Left err -> putStrLn $ "Failed to create producer: " <> show err

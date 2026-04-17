@@ -3,6 +3,7 @@ module Main (main) where
 import Control.Exception (SomeException, catch)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BS8
+import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName)
 import Kafka.Consumer (
@@ -62,29 +63,29 @@ main = do
     -- Pattern 1: skipNonFatal filters out timeouts and partition EOF
     putStrLn "=== Pattern 1: skipNonFatal ==="
     putStrLn "Consuming with skipNonFatal (only fatal errors and valid messages pass through)..."
-    Stream.fold (Fold.drainMapM printEither) $
-        Stream.take 5 $
-            skipNonFatal $
-                kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & skipNonFatal
+        & Stream.take 5
+        & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 2: skipNonFatalExcept to keep timeouts visible
     putStrLn ""
     putStrLn "=== Pattern 2: skipNonFatalExcept [isPollTimeout] ==="
     putStrLn "Consuming with timeout detection (useful to know when topic is drained)..."
-    Stream.fold (Fold.drainMapM printEither) $
-        Stream.take 5 $
-            skipNonFatalExcept [isPollTimeout] $
-                kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaSource consumerProps consumerSub defaultTimeout
+        & skipNonFatalExcept [isPollTimeout]
+        & Stream.take 5
+        & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 3: throwLeft unwraps Either, throwing on error
     putStrLn ""
     putStrLn "=== Pattern 3: throwLeft with catch ==="
     putStrLn "Consuming with throwLeft (throws KafkaError as exception)..."
-    ( Stream.fold (Fold.drainMapM printRecord) $
-            Stream.take 5 $
-                throwLeft $
-                    skipNonFatal $
-                        kafkaSource consumerProps consumerSub defaultTimeout
+    ( kafkaSource consumerProps consumerSub defaultTimeout
+            & skipNonFatal
+            & throwLeft
+            & Stream.take 5
+            & Stream.fold (Fold.drainMapM printRecord)
         )
         `catch` (\(e :: SomeException) -> putStrLn $ "  Caught exception: " <> show e)
 

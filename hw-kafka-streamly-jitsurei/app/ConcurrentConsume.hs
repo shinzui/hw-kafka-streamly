@@ -3,6 +3,7 @@ module Main (main) where
 import Control.Concurrent (threadDelay)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as BS8
+import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName)
 import Kafka.Consumer (
@@ -61,9 +62,9 @@ main = do
         -- Note: parMapM dispatches work across threads, so [start] and [done]
         -- lines below will not appear in input order. This is expected.
         pipeline =
-            StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage $
-                Stream.mapMaybe (either (const Nothing) Just) $
-                    Stream.take 10 $
-                        skipNonFatal source
+            skipNonFatal source
+                & Stream.take 10
+                & Stream.mapMaybe (either (const Nothing) Just)
+                & StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage
     Stream.fold Fold.drain pipeline
     putStrLn "Done."
