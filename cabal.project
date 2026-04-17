@@ -2,9 +2,9 @@ packages:
   hw-kafka-streamly
   hw-kafka-streamly-jitsurei
 
-optional-packages:
-  /Users/shinzui/Keikaku/hub/haskell/streamly-project/streamly/core/streamly-core.cabal
-  /Users/shinzui/Keikaku/hub/haskell/streamly-project/streamly/streamly.cabal
+-- Resolve streamly/streamly-core from Hackage (0.3.x/0.11.x).
+-- To work against an unreleased upstream checkout, re-add an
+-- `optional-packages:` block pointing at the local streamly project.
 
 with-compiler: ghc-9.12.2
 

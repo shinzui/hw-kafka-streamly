@@ -45,7 +45,7 @@ library
     , bytestring       >=0.11 && <0.13
     , exceptions       >=0.10 && <1
     , hw-kafka-client  >=5.3  && <6
-    , streamly-core    >=0.4  && <0.5
+    , streamly-core    >=0.3  && <0.5
 
   hs-source-dirs:     src
   default-language:   GHC2024
@@ -72,7 +72,7 @@ test-suite hw-kafka-streamly-test
     , exceptions         >=0.10 && <1
     , hw-kafka-client    >=5.3  && <6
     , hw-kafka-streamly
-    , streamly-core      >=0.4  && <0.5
+    , streamly-core      >=0.3  && <0.5
     , tasty              >=1.4  && <2
     , tasty-hunit        >=0.10 && <0.11
     , tasty-quickcheck   >=0.10 && <0.12
