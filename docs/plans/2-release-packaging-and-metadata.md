@@ -30,12 +30,13 @@ This plan makes no Haskell source code changes and no API changes. It touches th
 - [x] Verify cabal build all succeeds (2026-04-17)
 - [x] Verify cabal build hw-kafka-streamly --ghc-options=-Wunused-packages produces no warnings (2026-04-17)
 - [x] Verify cd hw-kafka-streamly && cabal check passes with zero errors and zero warnings (2026-04-17)
-- [ ] Commit all changes with ExecPlan + MasterPlan + Intention trailers
+- [x] Commit all changes with ExecPlan + MasterPlan + Intention trailers (2026-04-17, commit f54eee7)
 
 
 ## Surprises & Discoveries
 
 - 2026-04-17: `cabal build hw-kafka-streamly --ghc-options="-Wunused-packages" -fforce-recomp` reported "Up to date" instead of recompiling — cabal does not treat the additional `--ghc-options` value as a configuration change once the package has already been built. Workaround: delete `dist-newstyle/build/.../hw-kafka-streamly-0.1.0.0` and rebuild. Result was clean (zero `-Wunused-packages` warnings), confirming the `bifunctors` removal is correct.
+- 2026-04-17: A repository pre-commit `treefmt` hook auto-formatted both cabal files (column-aligned the top-stanza fields in `hw-kafka-streamly.cabal`; wrapped the long synopsis onto two lines in `hw-kafka-streamly-jitsurei.cabal`). The first commit attempt failed because `--fail-on-change` is enabled; re-staging the formatted files and re-committing succeeded. Future cabal edits in this repo should expect treefmt to normalize alignment and wrapping.
 
 
 ## Decision Log
