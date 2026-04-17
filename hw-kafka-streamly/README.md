@@ -17,14 +17,12 @@ Add to your `.cabal` file:
 build-depends:
   , hw-kafka-streamly  >=0.1 && <0.2
   , hw-kafka-client    >=5.3 && <6
-  , streamly-core      >=0.4 && <0.5
+  , streamly-core      >=0.3 && <0.5
 ```
 
-> **Note:** `streamly-core` 0.4 is not yet published to Hackage at the time of
-> writing. Until it is, depend on a `source-repository-package` for upstream
-> Streamly in your `cabal.project`. The plan to land Streamly 0.4 on Hackage
-> is tracked in the project's master plan
-> (`docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md`, EP-5/EP-6).
+`hw-kafka-client` needs the `librdkafka` C library at build and run time
+(Homebrew: `brew install librdkafka`; Debian/Ubuntu: `apt install
+librdkafka-dev`).
 
 ## Modules
 
