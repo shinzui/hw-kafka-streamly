@@ -1,9 +1,9 @@
 let Schema =
-      https://raw.githubusercontent.com/shinzui/mori-schema/8415b4b8a746a84eecf982f0f1d7194368bf7b54/package.dhall
-        sha256:d19ae156d6c357d982a1aea0f1b6ba1f01d76d2d848545b150db75ed4c39a8a9
+      https://raw.githubusercontent.com/shinzui/mori-schema/ad9960dd3dd3b33eadd45f17bcf430b0e1ec13bc/package.dhall
+        sha256:83aa1432e98db5da81afde4ab2057dcab7ce4b2e883d0bc7f16c7d25b917dd0c
 
-in  { project =
-      { name = "hw-kafka-streamly"
+in  Schema.Project::{ project =
+      Schema.ProjectIdentity::{ name = "hw-kafka-streamly"
       , namespace = "shinzui"
       , type = Schema.PackageType.Library
       , description = Some
@@ -12,66 +12,42 @@ in  { project =
       , lifecycle = Schema.Lifecycle.Active
       , domains = [ "kafka", "streaming" ]
       , owners = [ "shinzui" ]
-      , origin = Schema.Origin.Own
       }
     , repos =
-      [ { name = "hw-kafka-streamly"
+      [ Schema.Repo::{ name = "hw-kafka-streamly"
         , github = Some "shinzui/hw-kafka-streamly"
-        , gitlab = None Text
-        , git = None Text
-        , localPath = None Text
         }
       ]
     , packages =
-      [ { name = "hw-kafka-streamly"
+      [ Schema.Package::{ name = "hw-kafka-streamly"
         , type = Schema.PackageType.Library
         , language = Schema.Language.Haskell
         , path = Some "hw-kafka-streamly"
         , description = Some
             "Streamly streaming integration for hw-kafka-client"
-        , lifecycle = None Schema.Lifecycle
-        , visibility = Schema.Visibility.Public
-        , runtime = { deployable = False, exposesApi = False }
-        , runtimeEnvironment = None Schema.RuntimeEnvironment
         , dependencies =
           [ Schema.Dependency.ByName "hw-kafka-client"
           , Schema.Dependency.ByName "streamly-core"
           ]
-        , docs = [] : List Schema.DocRef
-        , config = [] : List Schema.ConfigItem
-        , apiSource = None Schema.ApiSource
         }
-      , { name = "hw-kafka-streamly-jitsurei"
+      , Schema.Package::{ name = "hw-kafka-streamly-jitsurei"
         , type = Schema.PackageType.Application
         , language = Schema.Language.Haskell
         , path = Some "hw-kafka-streamly-jitsurei"
         , description = Some
             "Cookbook examples demonstrating hw-kafka-streamly usage patterns"
-        , lifecycle = None Schema.Lifecycle
-        , visibility = Schema.Visibility.Public
-        , runtime = { deployable = False, exposesApi = False }
-        , runtimeEnvironment = None Schema.RuntimeEnvironment
         , dependencies =
           [ Schema.Dependency.ByName "hw-kafka-streamly"
           , Schema.Dependency.ByName "hw-kafka-client"
           , Schema.Dependency.ByName "streamly-core"
           , Schema.Dependency.ByName "streamly"
           ]
-        , docs = [] : List Schema.DocRef
-        , config = [] : List Schema.ConfigItem
-        , apiSource = None Schema.ApiSource
         }
       ]
-    , bundles = [] : List Schema.PackageBundle
     , dependencies =
       [ "haskell-works/hw-kafka-client", "composewell/streamly" ]
-    , apis = [] : List Schema.Api
-    , agents = [] : List Schema.AgentHint
-    , skills = [] : List Schema.Skill
-    , subagents = [] : List Schema.Subagent
-    , standards = [] : List Text
     , docs =
-      [ { key = "exec-plan-streamly-bindings"
+      [ Schema.DocRef::{ key = "exec-plan-streamly-bindings"
         , kind = Schema.DocKind.Spec
         , audience = Schema.DocAudience.Module
         , description = Some
