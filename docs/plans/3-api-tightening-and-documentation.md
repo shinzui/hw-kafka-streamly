@@ -99,8 +99,15 @@ The plan delivers Haddock that renders correctly under `cabal haddock --haddock-
   Rationale for deferral: the best option depends on how comfortable we are with a breaking change inside 0.1.0.0 before any public release. Since 0.1.0.0 is not yet on Hackage, breaking changes cost nothing. The leaning is (b) prune aggressively, but confirm during implementation by reviewing how the jitsurei examples actually use these helpers.
   Date: 2026-04-17
 
-- Decision: Value-mapping helpers pruned per option (b). Keep `mapFirst`, `mapValue`, `bimapValue`; remove the nine sequence/traverse variants.
-  Rationale: Inspection of `hw-kafka-streamly-jitsurei/app/TransformPipeline.hs` confirms only `mapValue` is used from the 12 helpers, and even that usage is awkward (`mapValue (fmap uppercaseBS)`). Patterns 2 and 3 of the same demo use inline `fmap (fmap (first …))` and `fmap (fmap (bimap …))` rather than the library's traverse/sequence variants, showing users reach for the obvious inline form first. Keeping nine unused functions in the public API of 0.1.0.0 commits us to maintaining them forever. Since 0.1.0.0 is unreleased, pruning now costs nothing. The three retained helpers cover Pattern 1 (map value), Pattern 2 (map key), Pattern 3 (bimap) with a clear vocabulary and can each be re-documented as bifunctor lifts over the outer stream element rather than "key"/"value" of anything.
+- Decision: Value-mapping helpers pruned per option (b). Keep `mapFirst`, `mapValue`, `bimapValue`; remove the nine sequence/traverse variants (`sequenceValueFirst`, `sequenceValue`, `bisequenceValue`, `traverseValueFirst`, `traverseValue`, `bitraverseValue`, `traverseValueFirstM`, `traverseValueM`, `bitraverseValueM`).
+  Rationale: The 12 helpers split into two groups — pure bifunctor lifts (`map*`, `bimapValue`) and `Traversable`/`Bitraversable` operations (the `sequence*`/`traverse*`/`bitraverse*` family). We kept the three bifunctor lifts and removed all nine traversable variants. Four concrete reasons:
+
+    1. **No caller in the cookbook uses them.** Inspection of `hw-kafka-streamly-jitsurei/app/TransformPipeline.hs` (the only in-repo consumer of these helpers) shows only `mapValue` is used from the 12, and even that usage is awkward (`mapValue (fmap uppercaseBS)`). Patterns 2 and 3 of the same demo reach for inline `fmap (fmap (first …))` and `fmap (fmap (bimap …))` rather than any `sequence`/`traverse` variant — evidence that users reach for the obvious inline form first.
+    2. **The names misled in the nested `Either KafkaError (ConsumerRecord k v)` context.** "Value" and "first" read as "the `ConsumerRecord`'s value/key," but the helpers actually operated on the outer `Either`'s positions. For the three retained helpers this can be fixed with re-documented Haddock as bifunctor lifts over the outer stream element; for the nine traversable variants the confusion compounds (sequencing an inner functor through the outer `Either` has no obvious user-space analogue in a Kafka pipeline).
+    3. **They are one-liners users can write inline.** Every removed helper is `fmap (sequenceA . …)` or similar. Keeping them in the public API of 0.1.0.0 commits us to maintaining them forever under PVP, for no saving over the inline form.
+    4. **0.1.0.0 is unreleased.** Pruning now costs nothing; pruning after Hackage release would be a breaking change requiring a major bump.
+
+  The three retained helpers cover Pattern 1 (map value), Pattern 2 (map key), Pattern 3 (bimap) — the exact shapes the cookbook exercises — with a clear vocabulary, and can each be re-documented as bifunctor lifts over the outer stream element rather than "key"/"value" of anything.
   Date: 2026-04-17
 
 - Decision: `withKafkaProducer` stays in `IO` for 0.1.0.0; `MonadUnliftIO`/`MonadMask` generalization is out of scope.
@@ -447,3 +454,8 @@ Signatures that must exist in `hw-kafka-streamly/src/Kafka/Streamly/Combinators.
 Unchanged in type; both now reject non-positive `BatchSize` via `error`.
 
 Signatures in `hw-kafka-streamly/src/Kafka/Streamly/Source.hs` depend on the value-helpers decision — document the final surface in the Decision Log and match it here before closing out the plan.
+
+
+## Revisions
+
+- 2026-04-17 — Expanded the value-mapping-helpers Decision Log entry to spell out *why* the nine `sequence`/`traverse`/`bitraverse` variants were removed while the three bifunctor lifts (`mapFirst`, `mapValue`, `bimapValue`) were retained. No behavior change; clarification only, in response to a post-completion question.
