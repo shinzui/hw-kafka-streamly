@@ -22,10 +22,6 @@
       {
         formatter = formatter;
 
-        packages = {
-          default = haskellPackages.hw-kafka-streamly-jitsurei;
-        };
-
         checks = {
           formatting = treefmtEval.config.build.check self;
           pre-commit-check = pre-commit-hooks.lib.${system}.run {
