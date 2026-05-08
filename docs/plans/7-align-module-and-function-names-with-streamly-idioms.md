@@ -63,8 +63,8 @@ The change is breaking. The library is published as `0.1.0.0`; this plan release
   - [x] `cabal repl hw-kafka-streamly` confirms `Kafka.Streamly.Stream.kafkaStream` returns `Stream m _` and `Kafka.Streamly.Fold.kafkaFold` returns `Fold m _ _`.
   - [x] `cabal run exe:hw-kafka-streamly-jitsurei` lists `batch-fold` (not `batch-sink`) and references `kafkaStream` / `kafkaFold` in the help text.
   - [x] Live broker roundtrip: `streamly-producer` (banner "via kafkaFold...") sent 5 records, `streamly-consumer` (banner "via kafkaStream...") read all 5 back. The redpanda cluster was already running from a pre-existing user-owned process-compose — `just process-down` reported a missing socket but with `|| true` exits cleanly; the cluster remains as the user had it.
-- [ ] Milestone 6: Commit and tag
-  - [ ] Single commit (or a small chain) with the Conventional Commits message described in the Concrete Steps section, including the `ExecPlan:` and `Intention:` git trailers.
+- [x] Milestone 6: Commit and tag — 2026-05-08
+  - [x] Single commit `bdf6ec5` (`refactor!: rename Source/Sink to Stream/Fold to match streamly idioms`) with both `ExecPlan:` and `Intention:` trailers; treefmt pre-commit hook passed. 20 files changed, 680 insertions(+), 108 deletions(-).
 
 
 ## Surprises & Discoveries
