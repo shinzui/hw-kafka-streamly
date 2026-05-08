@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## 0.2.0.0 — <release date>
+
+### Changed (BREAKING)
+
+- Renamed modules and functions to use streamly's vocabulary instead of
+  conduit's. The functions return Streamly `Stream`s and `Fold`s, so the
+  modules are now named `Kafka.Streamly.Stream` and `Kafka.Streamly.Fold`,
+  and the function families are `kafkaStream*` and `kafkaFold*`.
+
+  | Old (0.1.0.0)                  | New (0.2.0.0)                |
+  |--------------------------------|------------------------------|
+  | `Kafka.Streamly.Source`        | `Kafka.Streamly.Stream`      |
+  | `Kafka.Streamly.Sink`          | `Kafka.Streamly.Fold`        |
+  | `kafkaSource`                  | `kafkaStream`                |
+  | `kafkaSourceAutoClose`         | `kafkaStreamAutoClose`       |
+  | `kafkaSourceNoClose`           | `kafkaStreamNoClose`         |
+  | `kafkaSink`                    | `kafkaFold`                  |
+  | `kafkaBatchSink`               | `kafkaBatchFold`             |
+
+  No backward-compatible re-exports are provided. Callers porting from
+  0.1.0.0 should mechanically substitute identifiers per the table.
+
 ## 0.1.0.0 — 2026-04-17
 
 Initial release.

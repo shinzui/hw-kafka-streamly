@@ -1,7 +1,7 @@
-module Kafka.Streamly.SourceTest (tests) where
+module Kafka.Streamly.StreamTest (tests) where
 
 import Kafka.Consumer (KafkaError (..), RdKafkaRespErrT (..))
-import Kafka.Streamly.Source (
+import Kafka.Streamly.Stream (
     isFatal,
     isPartitionEOF,
     isPollTimeout,
@@ -17,7 +17,7 @@ import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 tests :: TestTree
 tests =
     testGroup
-        "Source"
+        "Stream"
         [ testGroup "isFatal" isFatalTests
         , testGroup "isPollTimeout" isPollTimeoutTests
         , testGroup "isPartitionEOF" isPartitionEOFTests

@@ -1,5 +1,5 @@
 {- |
-Module      : Kafka.Streamly.Sink
+Module      : Kafka.Streamly.Fold
 Description : Producer folds and bracket helper for Streamly–Kafka pipelines.
 
 Streamly expresses consumers of a stream as 'Fold' values, the dual of
@@ -9,10 +9,10 @@ Streamly expresses consumers of a stream as 'Fold' values, the dual of
 
 == Worked example
 
-Fold five records through 'kafkaSink':
+Fold five records through 'kafkaFold':
 
 > import Kafka.Producer (ProducerRecord (..), TopicName (..), ProducePartition (..))
-> import Kafka.Streamly.Sink (kafkaSink, withKafkaProducer)
+> import Kafka.Streamly.Fold (kafkaFold, withKafkaProducer)
 > import Streamly.Data.Fold qualified as Fold
 > import Streamly.Data.Stream qualified as Stream
 >
@@ -28,7 +28,7 @@ Fold five records through 'kafkaSink':
 > main :: IO ()
 > main = do
 >     result <- withKafkaProducer producerProps $ \\producer ->
->         Stream.fold (kafkaSink producer) (Stream.fromList (map mkRecord [1..5]))
+>         Stream.fold (kafkaFold producer) (Stream.fromList (map mkRecord [1..5]))
 >     print result  -- Right Nothing on success
 
 == Delivery semantics
@@ -39,10 +39,10 @@ returned without an error — which in librdkafka terms means the records were
 delivery requires a flush; 'withKafkaProducer' handles this on exit, or call
 'Kafka.Producer.flushProducer' explicitly.
 -}
-module Kafka.Streamly.Sink (
+module Kafka.Streamly.Fold (
     -- * Producer folds
-    kafkaSink,
-    kafkaBatchSink,
+    kafkaFold,
+    kafkaBatchFold,
 
     -- * Resource management
     withKafkaProducer,
@@ -75,15 +75,15 @@ the fold inside 'withKafkaProducer' (which flushes on exit) or call
 
 @since 0.1.0.0
 -}
-kafkaSink ::
+kafkaFold ::
     (MonadIO m) =>
     KafkaProducer ->
     Fold m ProducerRecord (Maybe KafkaError)
-kafkaSink producer = Fold.foldlM' step (pure Nothing)
+kafkaFold producer = Fold.foldlM' step (pure Nothing)
   where
     step Nothing record = liftIO $ produceMessage producer record
     step err@(Just _) _ = pure err
-{-# INLINE kafkaSink #-}
+{-# INLINE kafkaFold #-}
 
 {- | A 'Fold' that sends batches of 'ProducerRecord' to Kafka.
 
@@ -91,7 +91,7 @@ Returns 'Nothing' if every record in every batch was accepted by
 'Kafka.Producer.produceMessage', or 'Just' the first t'KafkaError'. After an
 error the fold still consumes remaining input but sends nothing.
 
-As with 'kafkaSink', 'Nothing' means records are queued in librdkafka, not
+As with 'kafkaFold', 'Nothing' means records are queued in librdkafka, not
 acknowledged by the broker — use 'withKafkaProducer' or
 'Kafka.Producer.flushProducer' for delivery guarantees.
 
@@ -101,15 +101,15 @@ exported from that release. A future version of this library may switch to a
 true broker-side batch send once the upstream dependency supports it. Today
 this fold is a convenience for accepting @[ProducerRecord]@ input (for example
 the output of 'Kafka.Streamly.Combinators.batchByOrFlush') — it does not
-reduce the number of network round-trips compared to 'kafkaSink'.
+reduce the number of network round-trips compared to 'kafkaFold'.
 
 @since 0.1.0.0
 -}
-kafkaBatchSink ::
+kafkaBatchFold ::
     (MonadIO m) =>
     KafkaProducer ->
     Fold m [ProducerRecord] (Maybe KafkaError)
-kafkaBatchSink producer = Fold.foldlM' step (pure Nothing)
+kafkaBatchFold producer = Fold.foldlM' step (pure Nothing)
   where
     step Nothing batch = sendBatch batch
     step err@(Just _) _ = pure err
@@ -120,7 +120,7 @@ kafkaBatchSink producer = Fold.foldlM' step (pure Nothing)
         case result of
             Nothing -> sendBatch rs
             Just err -> pure (Just err)
-{-# INLINE kafkaBatchSink #-}
+{-# INLINE kafkaBatchFold #-}
 
 {- | Bracket producer creation and destruction around an action.
 

@@ -15,7 +15,7 @@ Add to your `.cabal` file:
 
 ```cabal
 build-depends:
-  , hw-kafka-streamly  >=0.1 && <0.2
+  , hw-kafka-streamly  >=0.2 && <0.3
   , hw-kafka-client    >=5.3 && <6
   , streamly-core      >=0.3 && <0.5
 ```
@@ -26,30 +26,30 @@ librdkafka-dev`).
 
 ## Modules
 
-- `Kafka.Streamly.Source` — consumer streams, error predicates and filters,
+- `Kafka.Streamly.Stream` — consumer streams, error predicates and filters,
   value-mapping helpers built on `Bifunctor`/`Bitraversable`.
-- `Kafka.Streamly.Sink` — producer folds and a `withKafkaProducer` bracket
+- `Kafka.Streamly.Fold` — producer folds and a `withKafkaProducer` bracket
   helper.
 - `Kafka.Streamly.Combinators` — batching combinators and helpers that throw
   `Left` values as exceptions.
 
 ## Consuming
 
-The source module ships three variants that differ only in how they manage
+The stream module ships three variants that differ only in how they manage
 the underlying `KafkaConsumer`:
 
-- `kafkaSource` — creates the consumer from `ConsumerProperties` and
+- `kafkaStream` — creates the consumer from `ConsumerProperties` and
   `Subscription`, closes it when the stream ends. Use this when the stream
   fully owns the consumer's lifecycle.
-- `kafkaSourceAutoClose` — wraps a caller-supplied `KafkaConsumer` and closes
+- `kafkaStreamAutoClose` — wraps a caller-supplied `KafkaConsumer` and closes
   it on stream end. Use this when the consumer is created elsewhere but its
   lifetime matches the stream.
-- `kafkaSourceNoClose` — wraps a caller-supplied `KafkaConsumer` and leaves
+- `kafkaStreamNoClose` — wraps a caller-supplied `KafkaConsumer` and leaves
   it open. Use this when the consumer outlives the stream.
 
 ```haskell
 import Kafka.Consumer
-import Kafka.Streamly.Source (kafkaSource, skipNonFatal)
+import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
 import Streamly.Data.Stream qualified as Stream
 
 main :: IO ()
@@ -60,16 +60,16 @@ main = do
       sub  = topics ["events"] <> offsetReset Earliest
   Stream.fold (Fold.drainBy print)
     . skipNonFatal
-    $ kafkaSource props sub (Timeout 1000)
+    $ kafkaStream props sub (Timeout 1000)
 ```
 
 ## Producing
 
-Producer sinks are Streamly `Fold`s:
+Producer folds are Streamly `Fold`s:
 
 ```haskell
 import Kafka.Producer
-import Kafka.Streamly.Sink (kafkaSink, withKafkaProducer)
+import Kafka.Streamly.Fold (kafkaFold, withKafkaProducer)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 
@@ -77,7 +77,7 @@ main :: IO ()
 main = do
   let props = brokersList ["localhost:9092"]
   result <- withKafkaProducer props $ \producer ->
-    Stream.fold (kafkaSink producer)
+    Stream.fold (kafkaFold producer)
       . fmap mkRecord
       $ Stream.fromList ["a", "b", "c"]
   print result

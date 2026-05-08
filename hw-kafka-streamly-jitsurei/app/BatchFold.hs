@@ -12,7 +12,7 @@ import Kafka.Producer (
     sendTimeout,
  )
 import Kafka.Streamly.Combinators (BatchSize (..), batchByOrFlush)
-import Kafka.Streamly.Sink (kafkaBatchSink, withKafkaProducer)
+import Kafka.Streamly.Fold (kafkaBatchFold, withKafkaProducer)
 import Streamly.Data.Stream qualified as Stream
 
 producerProps :: ProducerProperties
@@ -37,7 +37,7 @@ main = do
     let messages = Stream.fromList (map (Just . mkRecord) [1 .. 9 :: Int])
         batched = batchByOrFlush (BatchSize 3) messages
     result <- withKafkaProducer producerProps $ \producer ->
-        Stream.fold (kafkaBatchSink producer) batched
+        Stream.fold (kafkaBatchFold producer) batched
     case result of
         Left err -> putStrLn $ "Failed to create producer: " <> show err
         Right Nothing -> putStrLn "Done. All batches produced successfully."

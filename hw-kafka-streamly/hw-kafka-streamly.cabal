@@ -1,12 +1,11 @@
 cabal-version:   3.4
 name:            hw-kafka-streamly
-version:         0.1.0.0
+version:         0.2.0.0
 synopsis:        Streamly bindings for hw-kafka-client
 description:
   Streamly streaming integration for hw-kafka-client, a Haskell
-  binding to Apache Kafka via librdkafka. Provides composable stream
-  sources for consuming and fold-based sinks for producing, with safe
-  resource management.
+  binding to Apache Kafka via librdkafka. Provides composable streams
+  for consuming and folds for producing, with safe resource management.
 
 license:         MIT
 license-file:    LICENSE
@@ -37,8 +36,8 @@ library
   import:             warnings
   exposed-modules:
     Kafka.Streamly.Combinators
-    Kafka.Streamly.Sink
-    Kafka.Streamly.Source
+    Kafka.Streamly.Fold
+    Kafka.Streamly.Stream
 
   build-depends:
     , base             >=4.21 && <5
@@ -65,7 +64,7 @@ test-suite hw-kafka-streamly-test
   hs-source-dirs:     test
   other-modules:
     Kafka.Streamly.CombinatorsTest
-    Kafka.Streamly.SourceTest
+    Kafka.Streamly.StreamTest
 
   build-depends:
     , base               >=4.21 && <5

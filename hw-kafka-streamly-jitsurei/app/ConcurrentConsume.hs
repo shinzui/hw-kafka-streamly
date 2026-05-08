@@ -20,7 +20,7 @@ import Kafka.Consumer (
     offsetReset,
     topics,
  )
-import Kafka.Streamly.Source (kafkaSource, skipNonFatal)
+import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 import Streamly.Data.Stream.Prelude qualified as StreamP
@@ -57,12 +57,12 @@ main :: IO ()
 main = do
     putStrLn $ "Consuming from " <> show defaultTopicName <> " with concurrent processing..."
     putStrLn "  (maxThreads=4, maxBuffer=8)"
-    let source =
-            kafkaSource consumerProps consumerSub defaultTimeout
+    let stream =
+            kafkaStream consumerProps consumerSub defaultTimeout
         -- Note: parMapM dispatches work across threads, so [start] and [done]
         -- lines below will not appear in input order. This is expected.
         pipeline =
-            skipNonFatal source
+            skipNonFatal stream
                 & Stream.take 10
                 & Stream.mapMaybe (either (const Nothing) Just)
                 & StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage

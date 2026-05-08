@@ -5,7 +5,7 @@ Description : Auxiliary combinators for Streamly–Kafka pipelines.
 Auxiliary combinators that bridge consumer streams and producer folds:
 size-bounded batching with an explicit flush token, and helpers for callers
 who prefer exceptions over the @Either KafkaError a@ values that
-'Kafka.Streamly.Source' yields.
+'Kafka.Streamly.Stream' yields.
 
 Re-exports t'Kafka.Types.BatchSize' from "Kafka.Types" for convenience.
 -}

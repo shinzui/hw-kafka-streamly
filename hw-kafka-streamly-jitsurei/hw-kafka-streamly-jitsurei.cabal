@@ -1,6 +1,6 @@
 cabal-version: 3.4
 name:          hw-kafka-streamly-jitsurei
-version:       0.1.0.0
+version:       0.2.0.0
 synopsis:
   Cookbook examples for hw-kafka-streamly (not intended for publication)
 
@@ -97,9 +97,9 @@ executable transform-pipeline
     , hw-kafka-streamly-jitsurei
     , streamly-core
 
-executable batch-sink
+executable batch-fold
   import:         defaults
-  main-is:        BatchSink.hs
+  main-is:        BatchFold.hs
   hs-source-dirs: app
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:

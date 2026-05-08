@@ -18,7 +18,7 @@ This repository contains two cabal packages plus supporting tooling:
   covers the public API.
 - [`hw-kafka-streamly-jitsurei/`](./hw-kafka-streamly-jitsurei) — end-to-end
   runnable cookbook examples (not published). Seven executables covering a
-  basic consumer and producer, transform pipelines, batching sinks,
+  basic consumer and producer, transform pipelines, batching folds,
   error handling, consume-then-produce, and concurrent consumers.
 - [`docs/`](./docs) — design documents: a MasterPlan for the 0.1.0.0
   release and per-workstream ExecPlans.

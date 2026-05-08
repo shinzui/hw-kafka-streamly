@@ -11,7 +11,7 @@ import Kafka.Producer (
     logLevel,
     sendTimeout,
  )
-import Kafka.Streamly.Sink (kafkaSink, withKafkaProducer)
+import Kafka.Streamly.Fold (kafkaFold, withKafkaProducer)
 import Streamly.Data.Stream qualified as Stream
 
 producerProps :: ProducerProperties
@@ -32,10 +32,10 @@ mkRecord n =
 
 main :: IO ()
 main = do
-    putStrLn $ "Producing 5 messages to " <> show defaultTopicName <> " via kafkaSink..."
+    putStrLn $ "Producing 5 messages to " <> show defaultTopicName <> " via kafkaFold..."
     result <- withKafkaProducer producerProps $ \producer -> do
         let records = Stream.fromList (map mkRecord [1 .. 5 :: Int])
-        Stream.fold (kafkaSink producer) records
+        Stream.fold (kafkaFold producer) records
     case result of
         Left err -> putStrLn $ "Failed to create producer: " <> show err
         Right Nothing -> putStrLn "Done. All messages produced successfully."

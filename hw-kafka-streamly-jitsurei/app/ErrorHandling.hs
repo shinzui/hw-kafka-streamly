@@ -22,9 +22,9 @@ import Kafka.Consumer (
     topics,
  )
 import Kafka.Streamly.Combinators (throwLeft)
-import Kafka.Streamly.Source (
+import Kafka.Streamly.Stream (
     isPollTimeout,
-    kafkaSource,
+    kafkaStream,
     skipNonFatal,
     skipNonFatalExcept,
  )
@@ -63,7 +63,7 @@ main = do
     -- Pattern 1: skipNonFatal filters out timeouts and partition EOF
     putStrLn "=== Pattern 1: skipNonFatal ==="
     putStrLn "Consuming with skipNonFatal (only fatal errors and valid messages pass through)..."
-    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaStream consumerProps consumerSub defaultTimeout
         & skipNonFatal
         & Stream.take 5
         & Stream.fold (Fold.drainMapM printEither)
@@ -72,7 +72,7 @@ main = do
     putStrLn ""
     putStrLn "=== Pattern 2: skipNonFatalExcept [isPollTimeout] ==="
     putStrLn "Consuming with timeout detection (useful to know when topic is drained)..."
-    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaStream consumerProps consumerSub defaultTimeout
         & skipNonFatalExcept [isPollTimeout]
         & Stream.take 5
         & Stream.fold (Fold.drainMapM printEither)
@@ -81,7 +81,7 @@ main = do
     putStrLn ""
     putStrLn "=== Pattern 3: throwLeft with catch ==="
     putStrLn "Consuming with throwLeft (throws KafkaError as exception)..."
-    ( kafkaSource consumerProps consumerSub defaultTimeout
+    ( kafkaStream consumerProps consumerSub defaultTimeout
             & skipNonFatal
             & throwLeft
             & Stream.take 5

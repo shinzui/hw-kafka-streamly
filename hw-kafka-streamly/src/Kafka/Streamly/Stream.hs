@@ -1,21 +1,21 @@
 {- |
-Module      : Kafka.Streamly.Source
-Description : Consumer stream sources and helpers for Streamly–Kafka pipelines.
+Module      : Kafka.Streamly.Stream
+Description : Consumer streams and helpers for Streamly–Kafka pipelines.
 
-Stream sources backed by a @hw-kafka-client@ 'KafkaConsumer'. Each source
+Streams backed by a @hw-kafka-client@ 'KafkaConsumer'. Each stream
 yields @Either t'Kafka.Consumer.KafkaError' ('ConsumerRecord' (Maybe ByteString) (Maybe ByteString))@ —
 errors are kept in-band rather than raised as exceptions, matching the shape
 exposed by 'Kafka.Consumer.pollMessage'.
 
 == Three tiers of resource management
 
-* 'kafkaSource' — fully managed: creates a consumer, polls, closes on stream
+* 'kafkaStream' — fully managed: creates a consumer, polls, closes on stream
   termination. If consumer creation fails the t'KafkaError' is thrown as an
   exception (see the function's docstring for how this differs from
   @hw-kafka-conduit@).
-* 'kafkaSourceAutoClose' — takes a pre-built consumer, polls, closes on
+* 'kafkaStreamAutoClose' — takes a pre-built consumer, polls, closes on
   termination. The caller owns creation, the stream owns destruction.
-* 'kafkaSourceNoClose' — polls a consumer the caller fully owns. The stream
+* 'kafkaStreamNoClose' — polls a consumer the caller fully owns. The stream
   never touches the consumer's lifecycle.
 
 == Worked example
@@ -26,7 +26,7 @@ Consume five records from a topic, skipping non-fatal errors:
 >     ( ConsumerGroupId (..), ConsumerRecord, KafkaError
 >     , OffsetReset (..), brokersList, groupId, offsetReset, topics
 >     )
-> import Kafka.Streamly.Source (kafkaSource, skipNonFatal)
+> import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
 > import Streamly.Data.Fold qualified as Fold
 > import Streamly.Data.Stream qualified as Stream
 >
@@ -38,7 +38,7 @@ Consume five records from a topic, skipping non-fatal errors:
 >     Stream.fold (Fold.drainMapM print) $
 >         Stream.take 5 $
 >             skipNonFatal $
->                 kafkaSource props sub (Timeout 1000)
+>                 kafkaStream props sub (Timeout 1000)
 
 == Transforming the stream
 
@@ -51,11 +51,11 @@ The helpers 'mapFirst', 'mapValue', and 'bimapValue' save one level of wrapping
 by lifting a function directly into the outer stream element — see their
 docstrings.
 -}
-module Kafka.Streamly.Source (
-    -- * Stream sources
-    kafkaSource,
-    kafkaSourceAutoClose,
-    kafkaSourceNoClose,
+module Kafka.Streamly.Stream (
+    -- * Streams
+    kafkaStream,
+    kafkaStreamAutoClose,
+    kafkaStreamNoClose,
 
     -- * Error predicates
     isFatal,
@@ -101,12 +101,12 @@ values and polling continues.
 
 @since 0.1.0.0
 -}
-kafkaSourceNoClose ::
+kafkaStreamNoClose ::
     (MonadIO m) =>
     KafkaConsumer ->
     Timeout ->
     Stream m (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString)))
-kafkaSourceNoClose consumer timeout =
+kafkaStreamNoClose consumer timeout =
     Stream.unfoldrM step True
   where
     step False = pure Nothing
@@ -115,7 +115,7 @@ kafkaSourceNoClose consumer timeout =
         case msg of
             Left err | isFatal err -> pure $ Just (Left err, False)
             _ -> pure $ Just (msg, True)
-{-# INLINE kafkaSourceNoClose #-}
+{-# INLINE kafkaStreamNoClose #-}
 
 {- | Create a 'Stream' for a given 'KafkaConsumer'.
 
@@ -125,17 +125,17 @@ the stream to own destruction but not creation.
 
 @since 0.1.0.0
 -}
-kafkaSourceAutoClose ::
+kafkaStreamAutoClose ::
     (MonadIO m, MonadCatch m) =>
     KafkaConsumer ->
     Timeout ->
     Stream m (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString)))
-kafkaSourceAutoClose consumer timeout =
+kafkaStreamAutoClose consumer timeout =
     Stream.bracketIO
         (pure consumer)
         (\c -> () <$ closeConsumer c)
-        (\c -> kafkaSourceNoClose c timeout)
-{-# INLINE kafkaSourceAutoClose #-}
+        (\c -> kafkaStreamNoClose c timeout)
+{-# INLINE kafkaStreamAutoClose #-}
 
 {- | Create a fully managed consumer 'Stream' from 'ConsumerProperties' and a
 'Subscription'.
@@ -148,28 +148,28 @@ If consumer creation fails, the t'KafkaError' is thrown as an exception (via
 yields @Left err@ as the first stream value and then terminates. Callers
 migrating from conduit who prefer the in-band error should create the
 consumer manually with 'Kafka.Consumer.newConsumer' and, on @Right c@, pass
-@c@ to 'kafkaSourceAutoClose'.
+@c@ to 'kafkaStreamAutoClose'.
 
 Per-poll errors (non-fatal or fatal) are yielded in-band as @Left@ values,
-as with the other sources in this module.
+as with the other streams in this module.
 
 @since 0.1.0.0
 -}
-kafkaSource ::
+kafkaStream ::
     (MonadIO m, MonadCatch m) =>
     ConsumerProperties ->
     Subscription ->
     Timeout ->
     Stream m (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString)))
-kafkaSource props sub timeout =
+kafkaStream props sub timeout =
     Stream.bracketIO
         ( newConsumer props sub >>= \case
             Left err -> throwIO err
             Right c -> pure c
         )
         (\c -> () <$ closeConsumer c)
-        (\c -> kafkaSourceNoClose c timeout)
-{-# INLINE kafkaSource #-}
+        (\c -> kafkaStreamNoClose c timeout)
+{-# INLINE kafkaStream #-}
 
 -------------------------------------------------------------------------------
 -- Error predicates

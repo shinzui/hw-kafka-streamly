@@ -1,7 +1,7 @@
 module Main (main) where
 
 import Kafka.Streamly.CombinatorsTest qualified as CombinatorsTest
-import Kafka.Streamly.SourceTest qualified as SourceTest
+import Kafka.Streamly.StreamTest qualified as StreamTest
 import Test.Tasty (TestTree, defaultMain, testGroup)
 
 main :: IO ()
@@ -11,6 +11,6 @@ tests :: TestTree
 tests =
     testGroup
         "hw-kafka-streamly"
-        [ SourceTest.tests
+        [ StreamTest.tests
         , CombinatorsTest.tests
         ]

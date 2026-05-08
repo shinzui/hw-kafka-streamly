@@ -21,7 +21,7 @@ import Kafka.Consumer (
     offsetReset,
     topics,
  )
-import Kafka.Streamly.Source (kafkaSource, mapValue, skipNonFatal)
+import Kafka.Streamly.Stream (kafkaStream, mapValue, skipNonFatal)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 
@@ -66,7 +66,7 @@ main :: IO ()
 main = do
     -- Pattern 1: mapValue transforms the value field of ConsumerRecord
     putStrLn "=== Pattern 1: mapValue (uppercase record values) ==="
-    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaStream consumerProps consumerSub defaultTimeout
         & skipNonFatal
         & mapValue (fmap uppercaseBS)
         & Stream.take 5
@@ -75,7 +75,7 @@ main = do
     -- Pattern 2: fmap with Bifunctor.first to transform record keys
     putStrLn ""
     putStrLn "=== Pattern 2: fmap with Bifunctor.first (prefix record keys) ==="
-    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaStream consumerProps consumerSub defaultTimeout
         & skipNonFatal
         & fmap (fmap (first prefixKey))
         & Stream.take 5
@@ -84,7 +84,7 @@ main = do
     -- Pattern 3: fmap with bimap to transform both key and value
     putStrLn ""
     putStrLn "=== Pattern 3: fmap with bimap (prefix keys + uppercase values) ==="
-    kafkaSource consumerProps consumerSub defaultTimeout
+    kafkaStream consumerProps consumerSub defaultTimeout
         & skipNonFatal
         & fmap (fmap (bimap prefixKey uppercaseBS))
         & Stream.take 5

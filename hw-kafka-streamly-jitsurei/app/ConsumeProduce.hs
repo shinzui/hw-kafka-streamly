@@ -21,8 +21,8 @@ import Kafka.Consumer (
  )
 import Kafka.Producer qualified as P
 import Kafka.Streamly.Combinators (throwLeft)
-import Kafka.Streamly.Sink (kafkaSink, withKafkaProducer)
-import Kafka.Streamly.Source (kafkaSource, skipNonFatal)
+import Kafka.Streamly.Fold (kafkaFold, withKafkaProducer)
+import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
 import Streamly.Data.Stream qualified as Stream
 
 consumerProps :: ConsumerProperties
@@ -65,10 +65,10 @@ main = do
             <> show outputTopicName
             <> "..."
     result <- withKafkaProducer producerProps $ \producer -> do
-        let source =
-                kafkaSource consumerProps consumerSub defaultTimeout
+        let stream =
+                kafkaStream consumerProps consumerSub defaultTimeout
             pipeline =
-                skipNonFatal source
+                skipNonFatal stream
                     & throwLeft
                     & Stream.take 5
                     & Stream.mapM
@@ -76,7 +76,7 @@ main = do
                             putStrLn $ "  Processing: " <> showBS (crValue record)
                             pure (toOutputRecord record)
                         )
-        Stream.fold (kafkaSink producer) pipeline
+        Stream.fold (kafkaFold producer) pipeline
     case result of
         Left err -> putStrLn $ "Failed to create producer: " <> show err
         Right Nothing -> putStrLn "Done. All transformed messages produced successfully."
