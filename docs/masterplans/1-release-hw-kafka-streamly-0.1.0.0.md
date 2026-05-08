@@ -1,6 +1,14 @@
-# Release hw-kafka-streamly 0.1.0.0
+---
+id: 1
+slug: release-hw-kafka-streamly-0.1.0.0
+title: "Release hw-kafka-streamly 0.1.0.0"
+kind: master-plan
+created_at: 2026-04-17T22:28:34Z
+intention: "intention_01knbcpkxqemdaawn3zzs822f8"
+---
 
-Intention: intention_01knbcpkxqemdaawn3zzs822f8
+
+# Release hw-kafka-streamly 0.1.0.0
 
 This MasterPlan is a living document. The sections Progress, Surprises & Discoveries,
 Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.

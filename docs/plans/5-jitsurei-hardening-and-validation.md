@@ -1,8 +1,15 @@
+---
+id: 5
+slug: jitsurei-hardening-and-validation
+title: "Jitsurei hardening and live validation"
+kind: exec-plan
+created_at: 2026-04-17T21:52:42Z
+intention: "intention_01knbcpkxqemdaawn3zzs822f8"
+master_plan: "docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md"
+---
+
+
 # Jitsurei hardening and live validation
-
-MasterPlan: docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md
-
-Intention: intention_01knbcpkxqemdaawn3zzs822f8
 
 This ExecPlan is a living document. The sections Progress, Surprises & Discoveries,
 Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.

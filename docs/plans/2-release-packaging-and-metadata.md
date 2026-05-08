@@ -1,8 +1,15 @@
+---
+id: 2
+slug: release-packaging-and-metadata
+title: "Release packaging and metadata"
+kind: exec-plan
+created_at: 2026-04-17T15:09:48Z
+intention: "intention_01knbcpkxqemdaawn3zzs822f8"
+master_plan: "docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md"
+---
+
+
 # Release packaging and metadata
-
-MasterPlan: docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md
-
-Intention: intention_01knbcpkxqemdaawn3zzs822f8
 
 This ExecPlan is a living document. The sections Progress, Surprises & Discoveries,
 Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.

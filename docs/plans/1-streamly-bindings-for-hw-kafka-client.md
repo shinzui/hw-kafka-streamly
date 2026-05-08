@@ -1,6 +1,14 @@
-# Streamly bindings for hw-kafka-client
+---
+id: 1
+slug: streamly-bindings-for-hw-kafka-client
+title: "Streamly bindings for hw-kafka-client"
+kind: exec-plan
+created_at: 2026-04-17T21:51:17Z
+intention: "intention_01knbcpkxqemdaawn3zzs822f8"
+---
 
-Intention: intention_01knbcpkxqemdaawn3zzs822f8
+
+# Streamly bindings for hw-kafka-client
 
 This ExecPlan is a living document. The sections Progress, Surprises & Discoveries,
 Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.

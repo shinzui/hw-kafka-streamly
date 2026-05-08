@@ -1,8 +1,15 @@
+---
+id: 6
+slug: upstream-dependencies-and-hackage-release
+title: "Upstream dependencies and Hackage release"
+kind: exec-plan
+created_at: 2026-04-17T22:28:40Z
+intention: "intention_01knbcpkxqemdaawn3zzs822f8"
+master_plan: "docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md"
+---
+
+
 # Upstream dependencies and Hackage release
-
-MasterPlan: docs/masterplans/1-release-hw-kafka-streamly-0.1.0.0.md
-
-Intention: intention_01knbcpkxqemdaawn3zzs822f8
 
 This ExecPlan is a living document. The sections Progress, Surprises & Discoveries,
 Decision Log, and Outcomes & Retrospective must be kept up to date as work proceeds.
