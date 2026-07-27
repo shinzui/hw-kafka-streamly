@@ -178,6 +178,22 @@ kafkaStream props sub timeout =
 {- | Checks if the error is fatal in a way that it doesn't make sense to retry
 after or is unsafe to ignore.
 
+Of particular note is @RdKafkaRespErrFatal@. This is the generic code librdkafka
+uses to tell the application that a /fatal error/ has been raised on the client
+— the canonical consumer case being a __fenced__ static group member, where a
+second consumer joined with the same @group.instance.id@ and the broker fenced
+this one. Once that happens librdkafka permanently halts all consumer group
+activity for the client: rejoins return immediately and subscribes are treated
+as unsubscribes. There is no recovery except closing the consumer, so it must
+terminate the stream rather than be retried.
+
+That code arrives in-band from 'Kafka.Consumer.pollMessage' in
+'Kafka.Consumer.CallbackPollModeSync', and — once the patched @hw-kafka-client@
+pinned by this project is in use — in 'Kafka.Consumer.CallbackPollModeAsync' as
+well. Both modes deliver the same generic code, so this single arm covers both;
+'Kafka.Consumer.consumerFatalError' recovers the underlying cause when you want
+it for logging.
+
 @since 0.1.0.0
 -}
 isFatal :: KafkaError -> Bool
@@ -200,6 +216,8 @@ isFatal = \case
     KafkaResponseError RdKafkaRespErrUnsupportedSaslMechanism -> True
     KafkaResponseError RdKafkaRespErrIllegalSaslState -> True
     KafkaResponseError RdKafkaRespErrUnsupportedVersion -> True
+    KafkaResponseError RdKafkaRespErrFatal -> True
+    KafkaResponseError RdKafkaRespErrSaslAuthenticationFailed -> True
     _ -> False
 {-# INLINE isFatal #-}
 

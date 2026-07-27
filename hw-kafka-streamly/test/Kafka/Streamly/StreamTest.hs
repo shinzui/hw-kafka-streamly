@@ -49,6 +49,8 @@ fatalErrors =
     , ("RdKafkaRespErrUnsupportedSaslMechanism", KafkaResponseError RdKafkaRespErrUnsupportedSaslMechanism)
     , ("RdKafkaRespErrIllegalSaslState", KafkaResponseError RdKafkaRespErrIllegalSaslState)
     , ("RdKafkaRespErrUnsupportedVersion", KafkaResponseError RdKafkaRespErrUnsupportedVersion)
+    , ("RdKafkaRespErrFatal", KafkaResponseError RdKafkaRespErrFatal)
+    , ("RdKafkaRespErrSaslAuthenticationFailed", KafkaResponseError RdKafkaRespErrSaslAuthenticationFailed)
     ]
 
 nonFatalErrors :: [(String, KafkaError)]
@@ -109,10 +111,11 @@ runStream ::
     IO [b]
 runStream f xs = Stream.fold Fold.toList (f (Stream.fromList xs))
 
-timedOut, partitionEof, authentication :: KafkaError
+timedOut, partitionEof, authentication, librdkafkaFatal :: KafkaError
 timedOut = KafkaResponseError RdKafkaRespErrTimedOut
 partitionEof = KafkaResponseError RdKafkaRespErrPartitionEof
 authentication = KafkaResponseError RdKafkaRespErrAuthentication
+librdkafkaFatal = KafkaResponseError RdKafkaRespErrFatal
 
 skipNonFatalTests :: [TestTree]
 skipNonFatalTests =
@@ -120,6 +123,7 @@ skipNonFatalTests =
     , testCase "passes all Rights through unchanged" passesAllRights
     , testCase "drops non-fatal Lefts even with empty extension list" dropsNonFatal
     , testCase "drops partition-EOF (non-fatal)" dropsPartitionEof
+    , testCase "keeps a librdkafka fatal error" keepsLibrdkafkaFatal
     ]
   where
     dropsAndKeeps :: Assertion
@@ -160,6 +164,27 @@ skipNonFatalTests =
                 ]
         result <- runStream skipNonFatal input
         result @?= [Right 1, Right 2]
+
+    -- This is the regression that made 'skipNonFatal' silently discard the one
+    -- signal that the consumer is permanently dead. 'RdKafkaRespErrFatal' is
+    -- what librdkafka delivers in-band once a fatal error has been raised, so
+    -- filtering it out leaves a stream that polls a dead consumer forever.
+    --
+    -- The defect can only be pinned at this level. The poll action inside
+    -- 'kafkaStreamNoClose' is not injectable — it calls 'pollMessage' on a
+    -- concrete 'KafkaConsumer' — so a fenced-consumer scenario cannot be
+    -- simulated in a unit test without a real broker and a real consumer
+    -- handle. The classification predicate is where the bug lived, and this is
+    -- where it stays fixed.
+    keepsLibrdkafkaFatal :: Assertion
+    keepsLibrdkafkaFatal = do
+        let input =
+                [ Right (1 :: Int)
+                , Left librdkafkaFatal
+                , Right 2
+                ]
+        result <- runStream skipNonFatal input
+        result @?= [Right 1, Left librdkafkaFatal, Right 2]
 
 skipNonFatalExceptTests :: [TestTree]
 skipNonFatalExceptTests =

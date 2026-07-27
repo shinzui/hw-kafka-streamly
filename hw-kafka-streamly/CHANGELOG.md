@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to the [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## Unreleased
+
+### Fixed
+
+- `isFatal` now classifies `RdKafkaRespErrFatal` as fatal. This is the generic
+  code librdkafka uses to report that a fatal error has been raised on the
+  client — most importantly a __fenced__ static group member, where a second
+  consumer joined with the same `group.instance.id`. After a fatal error
+  librdkafka permanently halts all consumer group activity, so the consumer is
+  dead and cannot recover. Because `isFatal` previously fell through to its
+  catch-all and returned `False`, the recommended `skipNonFatal` filter
+  silently *discarded* that signal and the stream went on polling a dead
+  consumer forever. Any consumer relying on `skipNonFatal` to surface fatal
+  conditions was affected.
+
+- `isFatal` now classifies `RdKafkaRespErrSaslAuthenticationFailed` as fatal.
+  This is the broker-side SASL rejection; like the already-fatal transport-level
+  `RdKafkaRespErrAuthentication`, retrying it in a tight poll loop never helps
+  and can lock accounts.
+
+### Changed
+
+- `cabal.project` pins the compiler to `ghc-9.12.4`, matching the version this
+  repository's own Nix devShell provides (`nix/haskell.nix`). The previous
+  `ghc-9.12.2` pin no longer resolved to an installed compiler and made the
+  project unbuildable.
+
+- `cabal.project` pins `hw-kafka-client` to a patched fork
+  (`shinzui/hw-kafka-client`) that surfaces consumer fatal errors in
+  `CallbackPollModeAsync` and stops leaking every message its background
+  callback-poll loop consumes. Without this, a fatal error is unobservable in
+  async mode at any layer, so the `isFatal` fix above only takes effect in
+  `CallbackPollModeSync`. The pin is by commit and is intended to last until the
+  change is available upstream.
+
 ## 0.2.0.0 — 2026-05-07
 
 ### Changed (BREAKING)
