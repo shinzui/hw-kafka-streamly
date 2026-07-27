@@ -22,7 +22,7 @@ import Kafka.Consumer (
 import Kafka.Producer qualified as P
 import Kafka.Streamly.Combinators (throwLeft)
 import Kafka.Streamly.Fold (kafkaFold, withKafkaProducer)
-import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
+import Kafka.Streamly.Stream (skipNonFatal, withKafkaConsumerStream)
 import Streamly.Data.Stream qualified as Stream
 
 consumerProps :: ConsumerProperties
@@ -64,19 +64,22 @@ main = do
             <> ", transforming, producing to "
             <> show outputTopicName
             <> "..."
-    result <- withKafkaProducer producerProps $ \producer -> do
-        let stream =
-                kafkaStream consumerProps consumerSub defaultTimeout
-            pipeline =
-                skipNonFatal stream
-                    & throwLeft
-                    & Stream.take 5
-                    & Stream.mapM
-                        ( \record -> do
-                            putStrLn $ "  Processing: " <> showBS (crValue record)
-                            pure (toOutputRecord record)
-                        )
-        Stream.fold (kafkaFold producer) pipeline
+    -- The consumer scope nests inside the producer scope, so both are released
+    -- deterministically. Stream.take 5 abandons the stream, and throwLeft can
+    -- raise downstream of it; either alone would defer a stream-level cleanup
+    -- to the garbage collector.
+    result <- withKafkaProducer producerProps $ \producer ->
+        withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream -> do
+            let pipeline =
+                    skipNonFatal stream
+                        & throwLeft
+                        & Stream.take 5
+                        & Stream.mapM
+                            ( \record -> do
+                                putStrLn $ "  Processing: " <> showBS (crValue record)
+                                pure (toOutputRecord record)
+                            )
+            Stream.fold (kafkaFold producer) pipeline
     case result of
         Left err -> putStrLn $ "Failed to create producer: " <> show err
         Right Nothing -> putStrLn "Done. All transformed messages produced successfully."

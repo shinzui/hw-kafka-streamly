@@ -7,7 +7,37 @@ and this project adheres to the [Haskell Package Versioning Policy](https://pvp.
 
 ## Unreleased
 
+### Added
+
+- `withKafkaConsumerStream` and `withKafkaConsumerStreamOn`, scope-based entry
+  points that hand a stream to a continuation and **close the consumer when the
+  continuation returns** — however much of the stream was consumed, and even if
+  it throws. These are now the recommended way to consume, and the internal
+  `withConsumerStreamVia` is exported so the guarantee can be tested.
+
 ### Fixed
+
+- The module's worked example, and every example in
+  `hw-kafka-streamly-jitsurei`, no longer leak a consumer. All of them took a
+  fixed number of records and then abandoned the stream, which is exactly the
+  case `kafkaStream` cannot clean up promptly, so every example a user might
+  copy demonstrated the leak. They now use `withKafkaConsumerStream`.
+
+### Changed
+
+- `kafkaStream` and `kafkaStreamAutoClose` carry a prominent warning that their
+  close is deferred to the garbage collector when the stream is partially
+  consumed and abandoned — a `Stream.take`, an early-terminating fold, or an
+  exception thrown downstream. This is upstream-documented streamly behaviour
+  (*"Worst case … cleanup is deferred to GC: the bracketed stream is partially
+  consumed and abandoned"*), not a defect in this library, but it is far more
+  consequential for a Kafka consumer than for an ordinary resource: until some
+  GC runs, hw-kafka-client's background loop keeps polling, which keeps the
+  group membership alive, keeps the partitions assigned to a consumer nobody is
+  reading, and keeps resetting librdkafka's `max.poll.interval.ms` progress
+  watchdog — so those partitions are starved with no rebalance. A quiet process
+  may never run that GC, and process exit runs no finalizers at all. Neither
+  function is deprecated: both are correct when the stream is drained.
 
 - `isFatal` now classifies `RdKafkaRespErrFatal` as fatal. This is the generic
   code librdkafka uses to report that a fatal error has been raised on the

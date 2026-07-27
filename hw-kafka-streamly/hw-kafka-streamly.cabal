@@ -65,9 +65,11 @@ test-suite hw-kafka-streamly-test
   other-modules:
     Kafka.Streamly.CombinatorsTest
     Kafka.Streamly.StreamTest
+    Kafka.Streamly.WithStreamTest
 
   build-depends:
     , base               >=4.21 && <5
+    , bytestring         >=0.11 && <0.13
     , exceptions         >=0.10 && <1
     , hw-kafka-client    >=5.3  && <6
     , hw-kafka-streamly
@@ -75,6 +77,7 @@ test-suite hw-kafka-streamly-test
     , tasty              >=1.4  && <2
     , tasty-hunit        >=0.10 && <0.11
     , tasty-quickcheck   >=0.10 && <0.12
+    , text               >=2.0  && <2.2
 
   default-language:   GHC2024
   default-extensions:

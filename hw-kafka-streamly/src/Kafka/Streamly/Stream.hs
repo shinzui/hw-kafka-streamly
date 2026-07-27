@@ -7,16 +7,28 @@ yields @Either t'Kafka.Consumer.KafkaError' ('ConsumerRecord' (Maybe ByteString)
 errors are kept in-band rather than raised as exceptions, matching the shape
 exposed by 'Kafka.Consumer.pollMessage'.
 
-== Three tiers of resource management
+== Four tiers of resource management
 
+* 'withKafkaConsumerStream' — /recommended/. Creates a consumer, hands your
+  continuation a stream over it, and closes the consumer when the continuation
+  returns, however much of the stream you consumed.
+* 'withKafkaConsumerStreamOn' — the same scope guarantee for a consumer you
+  built yourself.
 * 'kafkaStream' — fully managed: creates a consumer, polls, closes on stream
   termination. If consumer creation fails the t'KafkaError' is thrown as an
   exception (see the function's docstring for how this differs from
-  @hw-kafka-conduit@).
+  @hw-kafka-conduit@). __Closes only if the stream is consumed to
+  termination__ — see the warning on that function.
 * 'kafkaStreamAutoClose' — takes a pre-built consumer, polls, closes on
-  termination. The caller owns creation, the stream owns destruction.
+  termination. The caller owns creation, the stream owns destruction. Carries
+  the same warning.
 * 'kafkaStreamNoClose' — polls a consumer the caller fully owns. The stream
   never touches the consumer's lifecycle.
+
+Prefer the @with@-functions unless you consume every stream to completion. A
+Kafka consumer is not an ordinary resource: an unclosed one keeps polling in
+the background, which keeps its group membership alive and its partitions
+assigned to a process that is no longer reading them.
 
 == Worked example
 
@@ -26,7 +38,7 @@ Consume five records from a topic, skipping non-fatal errors:
 >     ( ConsumerGroupId (..), ConsumerRecord, KafkaError
 >     , OffsetReset (..), brokersList, groupId, offsetReset, topics
 >     )
-> import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
+> import Kafka.Streamly.Stream (withKafkaConsumerStream, skipNonFatal)
 > import Streamly.Data.Fold qualified as Fold
 > import Streamly.Data.Stream qualified as Stream
 >
@@ -35,10 +47,14 @@ Consume five records from a topic, skipping non-fatal errors:
 >     let props = brokersList ["localhost:9092"]
 >             <> groupId (ConsumerGroupId "example-group")
 >         sub  = topics ["example-topic"] <> offsetReset Earliest
->     Stream.fold (Fold.drainMapM print) $
->         Stream.take 5 $
->             skipNonFatal $
->                 kafkaStream props sub (Timeout 1000)
+>     withKafkaConsumerStream props sub (Timeout 1000) $ \stream ->
+>         Stream.fold (Fold.drainMapM print) $
+>             Stream.take 5 $
+>                 skipNonFatal stream
+
+Note the @with@-function here rather than 'kafkaStream'. This example takes
+only five records and then abandons the stream, which is precisely the case
+where a stream-level bracket cannot close the consumer promptly.
 
 == Transforming the stream
 
@@ -52,10 +68,17 @@ by lifting a function directly into the outer stream element — see their
 docstrings.
 -}
 module Kafka.Streamly.Stream (
+    -- * Scoped streams
+    withKafkaConsumerStream,
+    withKafkaConsumerStreamOn,
+
     -- * Streams
     kafkaStream,
     kafkaStreamAutoClose,
     kafkaStreamNoClose,
+
+    -- * Internal — exported for tests
+    withConsumerStreamVia,
 
     -- * Error predicates
     isFatal,
@@ -72,7 +95,8 @@ module Kafka.Streamly.Stream (
     bimapValue,
 ) where
 
-import Control.Exception (throwIO)
+import Control.Exception (bracket, throwIO)
+import Control.Monad (void)
 import Control.Monad.Catch (MonadCatch)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Bifunctor (Bifunctor, bimap, first)
@@ -123,6 +147,25 @@ The consumer is passed in by the caller but will be closed automatically when
 the stream ends (via 'Streamly.Data.Stream.bracketIO'). Use this when you want
 the stream to own destruction but not creation.
 
+__Warning: the close is only prompt if the stream is consumed to
+termination.__ If the stream is partially consumed and abandoned — a
+'Streamly.Data.Stream.take', a fold that terminates early, or an exception
+thrown downstream of this stream — @bracketIO@ has no execution point left and
+falls back to registering the cleanup as a garbage-collector finalizer.
+streamly-core documents this itself: /"Worst case … cleanup is deferred to
+GC: the bracketed stream is partially consumed and abandoned"/.
+
+For an ordinary resource that would be a minor delay. For a Kafka consumer it
+is not: until some GC happens to run, @hw-kafka-client@'s background loop keeps
+polling every 100 ms, which keeps the group membership alive, keeps the
+partitions assigned to a consumer nobody is reading, and keeps resetting
+librdkafka's @max.poll.interval.ms@ progress watchdog — so those partitions are
+starved with no rebalance to recover them. A quiet process may never run that
+GC, and process exit runs no finalizers at all, so a short-lived program leaks
+the group member until the broker's @session.timeout.ms@ expires it.
+
+Use 'withKafkaConsumerStreamOn' unless you know the stream is always drained.
+
 @since 0.1.0.0
 -}
 kafkaStreamAutoClose ::
@@ -153,6 +196,13 @@ consumer manually with 'Kafka.Consumer.newConsumer' and, on @Right c@, pass
 Per-poll errors (non-fatal or fatal) are yielded in-band as @Left@ values,
 as with the other streams in this module.
 
+__Warning: the close is only prompt if the stream is consumed to
+termination.__ This carries exactly the same garbage-collector-deferral
+hazard as 'kafkaStreamAutoClose' — see that function for the full
+explanation of why an abandoned Kafka consumer starves its partitions rather
+than merely lingering. Use 'withKafkaConsumerStream' unless you know the
+stream is always drained.
+
 @since 0.1.0.0
 -}
 kafkaStream ::
@@ -170,6 +220,100 @@ kafkaStream props sub timeout =
         (\c -> () <$ closeConsumer c)
         (\c -> kafkaStreamNoClose c timeout)
 {-# INLINE kafkaStream #-}
+
+-------------------------------------------------------------------------------
+-- Scoped streams
+-------------------------------------------------------------------------------
+
+{- | Internal: bracket a consumer around a stream-consuming continuation.
+
+The close action is injectable so that tests can observe that it ran, exactly
+once, before the scope returned. Production callers always pass
+'closeConsumer'.
+
+@since 0.3.0.0
+-}
+withConsumerStreamVia ::
+    -- | Acquire the consumer.
+    IO KafkaConsumer ->
+    -- | Close it. Runs exactly once, on every exit path.
+    (KafkaConsumer -> IO ()) ->
+    Timeout ->
+    ( Stream IO (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString))) ->
+      IO a
+    ) ->
+    IO a
+withConsumerStreamVia acquire close timeout consume =
+    bracket acquire close $ \consumer ->
+        consume (kafkaStreamNoClose consumer timeout)
+{-# INLINE withConsumerStreamVia #-}
+
+{- | Create a fully managed consumer, hand a 'Stream' over it to the given
+continuation, and __close the consumer when the continuation returns__ —
+regardless of how much of the stream the continuation consumed, and even if it
+throws.
+
+This is the recommended entry point. Unlike 'kafkaStream', the close is
+sequenced by an ordinary 'Control.Exception.bracket' in @IO@ rather than by a
+stream-level bracket, so abandoning the stream cannot defer it to the garbage
+collector:
+
+> withKafkaConsumerStream props sub (Timeout 1000) $ \stream ->
+>     Stream.fold Fold.toList $
+>         Stream.take 5 $
+>             skipNonFatal stream
+
+By the time @withKafkaConsumerStream@ returns, the consumer has left its group
+and released its partitions. See 'kafkaStreamAutoClose' for what happens
+without that guarantee.
+
+If consumer creation fails the t'KafkaError' is thrown as an exception, as in
+'kafkaStream'. Errors from 'closeConsumer' are discarded: the scope may
+already be unwinding an exception, and masking that with a close failure would
+lose the more informative error.
+
+The continuation is monomorphic in @IO@ because the bracket has to run
+somewhere concrete. If you need a stream in another base monad, use
+'kafkaStreamNoClose' with your own bracket.
+
+@since 0.3.0.0
+-}
+withKafkaConsumerStream ::
+    ConsumerProperties ->
+    Subscription ->
+    Timeout ->
+    ( Stream IO (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString))) ->
+      IO a
+    ) ->
+    IO a
+withKafkaConsumerStream props sub =
+    withConsumerStreamVia
+        ( newConsumer props sub >>= \case
+            Left err -> throwIO err
+            Right c -> pure c
+        )
+        (void . closeConsumer)
+{-# INLINE withKafkaConsumerStream #-}
+
+{- | Like 'withKafkaConsumerStream', but for a 'KafkaConsumer' the caller has
+already built. The caller owns creation; this function guarantees destruction
+when the continuation returns.
+
+Use this in place of 'kafkaStreamAutoClose' whenever the stream might not be
+drained.
+
+@since 0.3.0.0
+-}
+withKafkaConsumerStreamOn ::
+    KafkaConsumer ->
+    Timeout ->
+    ( Stream IO (Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString))) ->
+      IO a
+    ) ->
+    IO a
+withKafkaConsumerStreamOn consumer =
+    withConsumerStreamVia (pure consumer) (void . closeConsumer)
+{-# INLINE withKafkaConsumerStreamOn #-}
 
 -------------------------------------------------------------------------------
 -- Error predicates

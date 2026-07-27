@@ -24,9 +24,9 @@ import Kafka.Consumer (
 import Kafka.Streamly.Combinators (throwLeft)
 import Kafka.Streamly.Stream (
     isPollTimeout,
-    kafkaStream,
     skipNonFatal,
     skipNonFatalExcept,
+    withKafkaConsumerStream,
  )
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
@@ -63,29 +63,38 @@ main = do
     -- Pattern 1: skipNonFatal filters out timeouts and partition EOF
     putStrLn "=== Pattern 1: skipNonFatal ==="
     putStrLn "Consuming with skipNonFatal (only fatal errors and valid messages pass through)..."
-    kafkaStream consumerProps consumerSub defaultTimeout
-        & skipNonFatal
-        & Stream.take 5
-        & Stream.fold (Fold.drainMapM printEither)
+    -- Every pattern below takes a fixed number of elements and then abandons
+    -- the stream, so each one runs inside withKafkaConsumerStream: the consumer
+    -- is closed when the scope returns rather than whenever a garbage
+    -- collection happens to run. Pattern 3 makes the point twice over -- it
+    -- also throws downstream of the stream, which is the other case where a
+    -- stream-level bracket cannot clean up promptly.
+    withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
+        stream
+            & skipNonFatal
+            & Stream.take 5
+            & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 2: skipNonFatalExcept to keep timeouts visible
     putStrLn ""
     putStrLn "=== Pattern 2: skipNonFatalExcept [isPollTimeout] ==="
     putStrLn "Consuming with timeout detection (useful to know when topic is drained)..."
-    kafkaStream consumerProps consumerSub defaultTimeout
-        & skipNonFatalExcept [isPollTimeout]
-        & Stream.take 5
-        & Stream.fold (Fold.drainMapM printEither)
+    withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
+        stream
+            & skipNonFatalExcept [isPollTimeout]
+            & Stream.take 5
+            & Stream.fold (Fold.drainMapM printEither)
 
     -- Pattern 3: throwLeft unwraps Either, throwing on error
     putStrLn ""
     putStrLn "=== Pattern 3: throwLeft with catch ==="
     putStrLn "Consuming with throwLeft (throws KafkaError as exception)..."
-    ( kafkaStream consumerProps consumerSub defaultTimeout
-            & skipNonFatal
-            & throwLeft
-            & Stream.take 5
-            & Stream.fold (Fold.drainMapM printRecord)
+    ( withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
+            stream
+                & skipNonFatal
+                & throwLeft
+                & Stream.take 5
+                & Stream.fold (Fold.drainMapM printRecord)
         )
         `catch` (\(e :: SomeException) -> putStrLn $ "  Caught exception: " <> show e)
 

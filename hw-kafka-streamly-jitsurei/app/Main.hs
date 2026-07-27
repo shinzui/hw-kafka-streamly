@@ -6,7 +6,7 @@ main = do
     putStrLn ""
     putStrLn "Available examples:"
     putStrLn "  streamly-producer     Basic streaming production via kafkaFold"
-    putStrLn "  streamly-consumer     Basic streaming consumption via kafkaStream"
+    putStrLn "  streamly-consumer     Basic streaming consumption via withKafkaConsumerStream"
     putStrLn "  error-handling        Three error handling strategies"
     putStrLn "  transform-pipeline    Stream transformation with mapValue, bimapValue"
     putStrLn "  batch-fold            Batched production with batchByOrFlush"

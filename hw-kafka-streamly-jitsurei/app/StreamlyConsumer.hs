@@ -20,7 +20,7 @@ import Kafka.Consumer (
     offsetReset,
     topics,
  )
-import Kafka.Streamly.Stream (kafkaStream)
+import Kafka.Streamly.Stream (withKafkaConsumerStream)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 
@@ -54,8 +54,16 @@ printMessage (Right record) =
 
 main :: IO ()
 main = do
-    putStrLn $ "Consuming up to 10 messages from " <> show defaultTopicName <> " via kafkaStream..."
-    kafkaStream consumerProps consumerSub defaultTimeout
-        & Stream.take 10
-        & Stream.fold (Fold.drainMapM printMessage)
+    putStrLn $
+        "Consuming up to 10 messages from "
+            <> show defaultTopicName
+            <> " via withKafkaConsumerStream..."
+    -- Taking a fixed number of messages abandons the stream before it ends, so
+    -- the consumer must be closed by an enclosing scope. Using kafkaStream here
+    -- would leave the consumer running -- holding its partitions -- until a
+    -- garbage collection that may never happen.
+    withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
+        stream
+            & Stream.take 10
+            & Stream.fold (Fold.drainMapM printMessage)
     putStrLn "Done."

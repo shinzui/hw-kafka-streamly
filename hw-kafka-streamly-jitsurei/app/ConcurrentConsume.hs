@@ -20,7 +20,7 @@ import Kafka.Consumer (
     offsetReset,
     topics,
  )
-import Kafka.Streamly.Stream (kafkaStream, skipNonFatal)
+import Kafka.Streamly.Stream (skipNonFatal, withKafkaConsumerStream)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 import Streamly.Data.Stream.Prelude qualified as StreamP
@@ -57,14 +57,15 @@ main :: IO ()
 main = do
     putStrLn $ "Consuming from " <> show defaultTopicName <> " with concurrent processing..."
     putStrLn "  (maxThreads=4, maxBuffer=8)"
-    let stream =
-            kafkaStream consumerProps consumerSub defaultTimeout
+    -- Stream.take 10 abandons the stream, so the consumer lives in a scope
+    -- that closes it on exit rather than leaving it to the garbage collector.
+    withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream -> do
         -- Note: parMapM dispatches work across threads, so [start] and [done]
         -- lines below will not appear in input order. This is expected.
-        pipeline =
-            skipNonFatal stream
-                & Stream.take 10
-                & Stream.mapMaybe (either (const Nothing) Just)
-                & StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage
-    Stream.fold Fold.drain pipeline
+        let pipeline =
+                skipNonFatal stream
+                    & Stream.take 10
+                    & Stream.mapMaybe (either (const Nothing) Just)
+                    & StreamP.parMapM (StreamP.maxThreads 4 . StreamP.maxBuffer 8) processMessage
+        Stream.fold Fold.drain pipeline
     putStrLn "Done."
