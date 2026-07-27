@@ -95,13 +95,20 @@ As with 'kafkaFold', 'Nothing' means records are queued in librdkafka, not
 acknowledged by the broker — use 'withKafkaProducer' or
 'Kafka.Producer.flushProducer' for delivery guarantees.
 
-Note: as of @hw-kafka-client-5.3.0@ each batch is sent as individual
-'Kafka.Producer.produceMessage' calls because @produceMessageBatch@ is not
-exported from that release. A future version of this library may switch to a
-true broker-side batch send once the upstream dependency supports it. Today
-this fold is a convenience for accepting @[ProducerRecord]@ input (for example
-the output of 'Kafka.Streamly.Combinators.batchByOrFlush') — it does not
-reduce the number of network round-trips compared to 'kafkaFold'.
+Note: each batch is sent as individual 'Kafka.Producer.produceMessage' calls,
+so this fold __does not reduce network round-trips__ compared to 'kafkaFold'.
+It is a convenience for accepting @[ProducerRecord]@ input — for example the
+output of 'Kafka.Streamly.Combinators.batchByOrFlush' — and nothing more.
+
+This is not a limitation of one @hw-kafka-client@ release. The package exports
+no batch produce at all: it removed its Haskell-level @produceMessageBatch@ in
+72e6f6d (October 2021, before @v5.3.0@), and that function was itself a @mapM@
+over @produceMessage@, so it would not have helped either. A true broker-side
+batch send needs a binding for librdkafka's @rd_kafka_produce_batch@, which
+the package has never had. Tracked as upstream issue
+@hw-kafka-client-no-produce-batch-binding@ — run
+@mori upstream-issues show hw-kafka-client-no-produce-batch-binding@ — and this
+fold will switch to a real batch send if that binding ever lands.
 
 @since 0.1.0.0
 -}
