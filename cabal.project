@@ -3,9 +3,7 @@ packages:
   hw-kafka-streamly-jitsurei
 
 with-compiler: ghc-9.12.4
-
 test-show-details: direct
-
 allow-newer:
   -- GHC 9.12 ships with updated boot libraries
   *:time

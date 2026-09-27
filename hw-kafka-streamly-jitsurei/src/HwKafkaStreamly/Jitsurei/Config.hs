@@ -1,9 +1,10 @@
-module HwKafkaStreamly.Jitsurei.Config (
-    defaultBrokerAddress,
+module HwKafkaStreamly.Jitsurei.Config
+  ( defaultBrokerAddress,
     defaultTimeout,
     defaultTopicName,
     outputTopicName,
-) where
+  )
+where
 
 import Kafka.Types (BrokerAddress (..), Timeout (..), TopicName (..))
 

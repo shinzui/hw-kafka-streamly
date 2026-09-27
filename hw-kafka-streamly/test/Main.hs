@@ -10,9 +10,9 @@ main = defaultMain tests
 
 tests :: TestTree
 tests =
-    testGroup
-        "hw-kafka-streamly"
-        [ StreamTest.tests
-        , CombinatorsTest.tests
-        , WithStreamTest.tests
-        ]
+  testGroup
+    "hw-kafka-streamly"
+    [ StreamTest.tests,
+      CombinatorsTest.tests,
+      WithStreamTest.tests
+    ]

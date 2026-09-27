@@ -5,8 +5,8 @@ import Data.ByteString.Char8 qualified as BS8
 import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import HwKafkaStreamly.Jitsurei.Config (defaultBrokerAddress, defaultTimeout, defaultTopicName)
-import Kafka.Consumer (
-    ConsumerGroupId (..),
+import Kafka.Consumer
+  ( ConsumerGroupId (..),
     ConsumerProperties,
     ConsumerRecord (..),
     KafkaError,
@@ -19,51 +19,51 @@ import Kafka.Consumer (
     noAutoCommit,
     offsetReset,
     topics,
- )
+  )
 import Kafka.Streamly.Stream (withKafkaConsumerStream)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 
 consumerProps :: ConsumerProperties
 consumerProps =
-    brokersList [defaultBrokerAddress]
-        <> groupId (ConsumerGroupId "jitsurei-streamly-consumer")
-        <> noAutoCommit
-        <> logLevel KafkaLogInfo
+  brokersList [defaultBrokerAddress]
+    <> groupId (ConsumerGroupId "jitsurei-streamly-consumer")
+    <> noAutoCommit
+    <> logLevel KafkaLogInfo
 
 consumerSub :: Subscription
 consumerSub =
-    topics [defaultTopicName]
-        <> offsetReset Earliest
+  topics [defaultTopicName]
+    <> offsetReset Earliest
 
 showBS :: Maybe BS.ByteString -> String
 showBS = BS8.unpack . fromMaybe "<null>"
 
 printMessage :: Either KafkaError (ConsumerRecord (Maybe BS.ByteString) (Maybe BS.ByteString)) -> IO ()
 printMessage (Left err) =
-    putStrLn $ "  Error: " <> show err
+  putStrLn $ "  Error: " <> show err
 printMessage (Right record) =
-    putStrLn $
-        "  Received: key="
-            <> showBS (crKey record)
-            <> " value="
-            <> showBS (crValue record)
-            <> " (offset="
-            <> show (crOffset record)
-            <> ")"
+  putStrLn $
+    "  Received: key="
+      <> showBS (crKey record)
+      <> " value="
+      <> showBS (crValue record)
+      <> " (offset="
+      <> show (crOffset record)
+      <> ")"
 
 main :: IO ()
 main = do
-    putStrLn $
-        "Consuming up to 10 messages from "
-            <> show defaultTopicName
-            <> " via withKafkaConsumerStream..."
-    -- Taking a fixed number of messages abandons the stream before it ends, so
-    -- the consumer must be closed by an enclosing scope. Using kafkaStream here
-    -- would leave the consumer running -- holding its partitions -- until a
-    -- garbage collection that may never happen.
-    withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
-        stream
-            & Stream.take 10
-            & Stream.fold (Fold.drainMapM printMessage)
-    putStrLn "Done."
+  putStrLn $
+    "Consuming up to 10 messages from "
+      <> show defaultTopicName
+      <> " via withKafkaConsumerStream..."
+  -- Taking a fixed number of messages abandons the stream before it ends, so
+  -- the consumer must be closed by an enclosing scope. Using kafkaStream here
+  -- would leave the consumer running -- holding its partitions -- until a
+  -- garbage collection that may never happen.
+  withKafkaConsumerStream consumerProps consumerSub defaultTimeout $ \stream ->
+    stream
+      & Stream.take 10
+      & Stream.fold (Fold.drainMapM printMessage)
+  putStrLn "Done."

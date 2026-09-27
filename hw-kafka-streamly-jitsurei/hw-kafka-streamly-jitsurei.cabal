@@ -1,26 +1,32 @@
 cabal-version: 3.4
-name:          hw-kafka-streamly-jitsurei
-version:       0.2.0.0
+name: hw-kafka-streamly-jitsurei
+version: 0.2.0.0
 synopsis:
   Cookbook examples for hw-kafka-streamly (not intended for publication)
 
-license:       MIT
-license-file:  LICENSE
-author:        Nadeem Bitar
-maintainer:    Nadeem Bitar
-category:      Kafka
-build-type:    Simple
+license: MIT
+license-file: LICENSE
+author: Nadeem Bitar
+maintainer: Nadeem Bitar
+category: Kafka
+build-type: Simple
 
 common warnings
   ghc-options:
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wmissing-export-lists -Wpartial-fields
+    -Wall
+    -Wcompat
+    -Widentities
+    -Wincomplete-uni-patterns
+    -Wincomplete-record-updates
+    -Wredundant-constraints
+    -fhide-source-paths
+    -Wmissing-export-lists
+    -Wpartial-fields
     -Wmissing-deriving-strategies
 
 common defaults
-  import:             warnings
-  default-language:   GHC2024
+  import: warnings
+  default-language: GHC2024
   default-extensions:
     DuplicateRecordFields
     ImportQualifiedPost
@@ -29,110 +35,142 @@ common defaults
     OverloadedStrings
 
 library
-  import:          defaults
-  hs-source-dirs:  src
+  import: defaults
+  hs-source-dirs: src
   exposed-modules: HwKafkaStreamly.Jitsurei.Config
   build-depends:
-    , base             >=4.21 && <5
-    , hw-kafka-client
+    base >=4.21 && <5,
+    hw-kafka-client,
 
 executable hw-kafka-streamly-jitsurei
-  import:         defaults
-  main-is:        Main.hs
+  import: defaults
+  main-is: Main.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , hw-kafka-streamly-jitsurei
+    base >=4.21 && <5,
+    hw-kafka-streamly-jitsurei,
 
 executable streamly-producer
-  import:         defaults
-  main-is:        StreamlyProducer.hs
+  import: defaults
+  main-is: StreamlyProducer.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable streamly-consumer
-  import:         defaults
-  main-is:        StreamlyConsumer.hs
+  import: defaults
+  main-is: StreamlyConsumer.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable error-handling
-  import:         defaults
-  main-is:        ErrorHandling.hs
+  import: defaults
+  main-is: ErrorHandling.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable transform-pipeline
-  import:         defaults
-  main-is:        TransformPipeline.hs
+  import: defaults
+  main-is: TransformPipeline.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable batch-fold
-  import:         defaults
-  main-is:        BatchFold.hs
+  import: defaults
+  main-is: BatchFold.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable consume-produce
-  import:         defaults
-  main-is:        ConsumeProduce.hs
+  import: defaults
+  main-is: ConsumeProduce.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly-core,
 
 executable concurrent-consume
-  import:         defaults
-  main-is:        ConcurrentConsume.hs
+  import: defaults
+  main-is: ConcurrentConsume.hs
   hs-source-dirs: app
-  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -threaded
+    -rtsopts
+    -with-rtsopts=-N
+
   build-depends:
-    , base                        >=4.21 && <5
-    , bytestring
-    , hw-kafka-client
-    , hw-kafka-streamly
-    , hw-kafka-streamly-jitsurei
-    , streamly
-    , streamly-core
+    base >=4.21 && <5,
+    bytestring,
+    hw-kafka-client,
+    hw-kafka-streamly,
+    hw-kafka-streamly-jitsurei,
+    streamly,
+    streamly-core,
