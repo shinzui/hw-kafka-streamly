@@ -1,0 +1,6 @@
+.envrc
+.pre-commit-config.yaml
+.claude/
+CLAUDE.local.md
+dist-newstyle/
+.agents/
